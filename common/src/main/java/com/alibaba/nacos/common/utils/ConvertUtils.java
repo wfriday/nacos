@@ -20,7 +20,9 @@ import java.util.Set;
 
 /**
  * Value Convert Utils.
- *
+ * 值转换工具类
+ *  将字符串的数值转成int 或者long
+ *  将字符串的boolean的值转成boolean对象
  * @author <a href="mailto:liaochuntao@live.com">liaochuntao</a>
  */
 public final class ConvertUtils {
@@ -45,7 +47,7 @@ public final class ConvertUtils {
     /**
      * Convert String value to int value if parameter value is legal. And return default value if parameter value is
      * null or blank str.
-     *
+     * 就是string类型的数值转换成对应的int的值,如果是null或者是空或者不是数组则返回默认值
      * @param val          value
      * @param defaultValue default value
      * @return int value if input value is legal, otherwise default value

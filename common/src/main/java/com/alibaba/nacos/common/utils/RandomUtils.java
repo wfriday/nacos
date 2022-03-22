@@ -20,7 +20,7 @@ import java.util.Random;
 
 /**
  * Random utils.
- *
+ * 随机数生成工具类
  * @author zzq
  */
 public class RandomUtils {

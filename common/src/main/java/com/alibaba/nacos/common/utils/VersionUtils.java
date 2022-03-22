@@ -23,13 +23,13 @@ import java.util.Properties;
 
 /**
  * Version utils.
- *
+ * 版本工具类
  * @author xingxuechao on:2019/2/27 12:32 PM
  */
 public class VersionUtils {
-    
+    /** 版本 */
     public static String version;
-    
+    /** 客户端版本 */
     private static String clientVersion;
     
     /**
@@ -38,6 +38,10 @@ public class VersionUtils {
     public static final String VERSION_PLACEHOLDER = "${project.version}";
     
     private static final String NACOS_VERSION_FILE = "nacos-version.txt";
+    
+    /**
+     *  从resource下读取nacos-version.txt(拿maven的version)版本信息,设置版本信息和客户端版本
+     */
     
     static {
         try (InputStream in = VersionUtils.class.getClassLoader().getResourceAsStream(NACOS_VERSION_FILE)) {
@@ -57,7 +61,7 @@ public class VersionUtils {
     
     /**
      * compare two version who is latest.
-     *
+     * 比较两个版本谁比较新
      * @param versionA version A, like x.y.z(-beta)
      * @param versionB version B, like x.y.z(-beta)
      * @return compare result

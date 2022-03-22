@@ -20,14 +20,14 @@ import java.util.Arrays;
 
 /**
  * Array utils.
- *
+ * 数组工具类
  * @author zzq
  */
 public class ArrayUtils {
     
     /**
      * <p>Checks if an array of Objects is empty or {@code null}.</p>
-     *
+     * 判断数组是否为null或者数组是空
      * @param array  the array to test
      * @return {@code true} if the array is empty or {@code null}
      */
@@ -37,7 +37,7 @@ public class ArrayUtils {
     
     /**
      * <p>Checks if the object is in the given array.</p>
-     *
+     * 判断数组是否包含某个对象
      * <p>The method returns {@code false} if a {@code null} array is passed in.</p>
      *
      * @param array  the array to search through

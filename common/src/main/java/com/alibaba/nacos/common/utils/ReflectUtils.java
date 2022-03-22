@@ -23,7 +23,7 @@ import java.lang.reflect.UndeclaredThrowableException;
 
 /**
  * reflect utils.
- *
+ * 反射工具类
  * @author liuzunfei
  * @version $Id: ReflectUtils.java, v 0.1 2020年08月20日 12:57 PM liuzunfei Exp $
  */
@@ -31,7 +31,7 @@ public class ReflectUtils {
     
     /**
      * get filed value of  obj.
-     *
+     * 反射获取属性的值
      * @param obj       obj.
      * @param fieldName file name to get value.
      * @return field value.
@@ -48,7 +48,7 @@ public class ReflectUtils {
     
     /**
      * get filed value of  obj.
-     *
+     * 反射获取属性值,如果没有该属性,则返回默认值
      * @param obj       obj.
      * @param fieldName file name to get value.
      * @return field value.
@@ -67,7 +67,7 @@ public class ReflectUtils {
      * Get the field represented by the supplied {@link Field field object} on the specified {@link Object target
      * object}. In accordance with {@link Field#get(Object)} semantics, the returned value is automatically wrapped if
      * the underlying field has a primitive type.
-     *
+     * 获取对象的属性值,不一定有权限
      * <p>Thrown exceptions are handled via a call to {@link #handleReflectionException(Exception)}.
      *
      * @param field  the field to get
@@ -148,7 +148,7 @@ public class ReflectUtils {
     /**
      * Invoke the specified {@link Method} against the supplied target object with the supplied arguments. The target
      * object can be {@code null} when invoking a static {@link Method}.
-     *
+     * 执行对象的方法
      * <p>Thrown exceptions are handled via a call to {@link #handleReflectionException}.
      *
      * @param method the method to invoke

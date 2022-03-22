@@ -31,7 +31,7 @@ import java.util.Set;
 
 /**
  * Copy from {@link org.apache.commons.collections}.
- *
+ * 集合工具类
  * @author <a href="mailto:liaochuntao@live.com">liaochuntao</a>
  */
 public final class CollectionUtils {

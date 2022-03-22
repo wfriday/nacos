@@ -18,7 +18,7 @@ package com.alibaba.nacos.common.utils;
 
 /**
  * Http method constants.
- *
+ * http请求方法常量
  * @author nkorange
  * @since 0.8.0
  */

@@ -48,7 +48,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * init environment config.
- *
+ * 初始化环境配置
  * @author <a href="mailto:huangxiaoyu1018@gmail.com">hxy1991</a>
  * @since 0.5.0
  */
@@ -93,6 +93,11 @@ public class StartingApplicationListener implements NacosApplicationListener {
     
     @Override
     public void environmentPrepared(ConfigurableEnvironment environment) {
+        /**
+         *  如果有配置nacos.home 则目录为配置的目录
+         *  无配置,则取user.home 目录下nacos文件夹
+         *  然后强制在其下创建logs conf data
+         */
         makeWorkDir();
         
         injectEnvironment(environment);

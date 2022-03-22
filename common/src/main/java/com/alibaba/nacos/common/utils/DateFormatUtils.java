@@ -21,6 +21,7 @@ import java.util.Date;
 
 /**
  * Date and time formatting utilities.
+ * 日期格式工具类
  * @author zzq
  */
 public class DateFormatUtils {
@@ -47,7 +48,7 @@ public class DateFormatUtils {
     
     /**
      * Formats a date/time into a specific pattern.
-     *
+     * 使用对应的格式格式化对应的日期
      * @param date  the date to format, not null
      * @param pattern  the pattern to use to format the date, not null
      * @return the formatted date

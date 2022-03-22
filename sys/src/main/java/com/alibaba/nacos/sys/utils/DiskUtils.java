@@ -53,7 +53,7 @@ import java.util.zip.ZipOutputStream;
 
 /**
  * IO operates on the utility class.
- *
+ * 磁盘io操作工具类
  * @author <a href="mailto:liaochuntao@live.com">liaochuntao</a>
  */
 public final class DiskUtils {
@@ -72,6 +72,7 @@ public final class DiskUtils {
     
     private static final CharsetDecoder DECODER = CHARSET.newDecoder();
     
+    // touch创建文件
     public static void touch(String path, String fileName) throws IOException {
         FileUtils.touch(Paths.get(path, fileName).toFile());
     }
@@ -94,7 +95,7 @@ public final class DiskUtils {
     /**
      * Creates a new empty file in the specified directory, using the given prefix and suffix strings to generate its
      * name. The resulting {@code Path} is associated with the same {@code FileSystem} as the given directory.
-     *
+     * 创建临时文件
      * <p>The details as to how the name of the file is constructed is
      * implementation dependent and therefore not specified. Where possible the {@code prefix} and {@code suffix} are
      * used to construct candidate names in the same manner as the {@link java.io.File#createTempFile(String, String,
@@ -141,7 +142,7 @@ public final class DiskUtils {
     
     /**
      * read file which under the path.
-     *
+     * 读取文件
      * @param path     directory
      * @param fileName filename
      * @return content

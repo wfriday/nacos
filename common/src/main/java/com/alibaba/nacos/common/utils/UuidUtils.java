@@ -20,7 +20,7 @@ import java.util.UUID;
 
 /**
  * UUID utils.
- *
+ * uuid生成的工具类
  * @author nkorange
  */
 public class UuidUtils {
