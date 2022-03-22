@@ -43,6 +43,8 @@ public class DoubleWriteMetadataChangeToV2Task extends AbstractExecuteTask {
     
     private final ServiceMetadata serviceMetadata;
     
+    private static final int PORT = 80;
+    
     public DoubleWriteMetadataChangeToV2Task(String namespace, String serviceName, boolean ephemeral,
             ServiceMetadata serviceMetadata) {
         this.serviceMetadata = serviceMetadata;
@@ -65,11 +67,11 @@ public class DoubleWriteMetadataChangeToV2Task extends AbstractExecuteTask {
             }
         } catch (Exception e) {
             if (Loggers.SRV_LOG.isDebugEnabled()) {
-                Loggers.SRV_LOG.debug("Double write task for {} metadata from 2 to 1 failed", service, e);
+                Loggers.SRV_LOG.debug("Double write task for {} metadata from 1 to 2 failed", service, e);
             }
             ServiceChangeV1Task retryTask = new ServiceChangeV1Task(service.getNamespace(),
                     service.getGroupedServiceName(), service.isEphemeral(), DoubleWriteContent.METADATA);
-            retryTask.setTaskInterval(3000L);
+            retryTask.setTaskInterval(INTERVAL);
             String taskKey = ServiceChangeV1Task
                     .getKey(service.getNamespace(), service.getGroupedServiceName(), service.isEphemeral());
             ApplicationUtils.getBean(DoubleWriteDelayTaskEngine.class).addTask(taskKey, retryTask);
@@ -83,6 +85,6 @@ public class DoubleWriteMetadataChangeToV2Task extends AbstractExecuteTask {
     
     private boolean isDefaultClusterMetadata(ClusterMetadata metadata) {
         return HealthCheckType.TCP.name().equals(metadata.getHealthyCheckType()) && metadata.getExtendData().isEmpty()
-                && metadata.getHealthyCheckPort() == 80 && metadata.isUseInstancePortForCheck();
+                && metadata.getHealthyCheckPort() == PORT && metadata.isUseInstancePortForCheck();
     }
 }

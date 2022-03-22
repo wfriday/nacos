@@ -36,6 +36,15 @@ Nacos provides four major functions.
 ## Quick Start
 It is super easy to get started with your first project.
 
+### Deploying Nacos on cloud
+
+You can deploy Nacos on cloud, which is the easiest and most convenient way to start Nacos. 
+
+Use the following [Nacos deployment guide](https://cn.aliyun.com/product/aliware/mse?spm=nacos-website.topbar.0.0.0) to see more information and deploy a stable and out-of-the-box Nacos server.
+
+
+### Start by the provided startup package
+
 #### Step 1: Download the binary package 
 
 You can download the package from the [latest stable release](https://github.com/alibaba/nacos/releases).  
@@ -76,10 +85,20 @@ You can view the full documentation from the [Nacos website](https://nacos.io/en
 
 All the latest and long-term notice can also be found here from [Github notice issue](https://github.com/alibaba/nacos/labels/notice).
 
-
 ## Contributing
 
 Contributors are welcomed to join Nacos project. Please check [CONTRIBUTING](./CONTRIBUTING.md) about how to contribute to this project.
+
+### How can I contribute?
+
+* Take a look at issues with tags marked [`good first issue`](https://github.com/alibaba/nacos/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) or [`contribution welcome`](https://github.com/alibaba/nacos/issues?q=is%3Aopen+is%3Aissue+label%3A%22contribution+welcome%22).
+* Answer questions on [issues](https://github.com/alibaba/nacos/issues).
+* Fix bugs reported on [issues](https://github.com/alibaba/nacos/issues), and send us a pull request.
+* Review the existing [pull request](https://github.com/alibaba/nacos/pulls).
+* Improve the [website](https://github.com/nacos-group/nacos-group.github.io), typically we need
+  * blog post
+  * translation on documentation
+  * use cases around the integration of Nacos in enterprise systems.
 
 ## Other Related Project Repositories
 
@@ -99,13 +118,18 @@ Contributors are welcomed to join Nacos project. Please check [CONTRIBUTING](./C
      * commits-nacos@googlegroups.com: Commits notice, very high frequency.
 * Join us from DingDing(Group 1: 21708933(full), Group 2: 30438813). 
 
- ![Nacos](https://img.alicdn.com/tfs/TB1TBKEzpP7gK0jSZFjXXc5aXXa-199-220.png)
+ ![Nacos](https://nacos.io/img/nacos_dingding.jpg)
+
+## Enterprise Service
+If you need Nacos enterprise service support, or purchase cloud product services, you can join the discussion by scanning the following DingTalk group. It can also be directly activated and used through the microservice engine (MSE) provided by Alibaba Cloud.
+https://cn.aliyun.com/product/aliware/mse?spm=nacos-website.topbar.0.0.0
+
+![image](https://user-images.githubusercontent.com/17695352/128659442-65b030b8-c5f4-4bb7-baa2-e5b3ef0cbc15.png)
 
 ## Download
 
 - [Github Release](https://github.com/alibaba/nacos/releases)
 - [Baidu Netdisk](https://pan.baidu.com/s/1186nmlqPGows9gUZKAx8Zw) Fetch Code : `rest`
-
 
 ## Who is using
 
@@ -175,5 +199,6 @@ These are only part of the companies using Nacos, for reference only. If you are
 ![天阙](https://img.alicdn.com/tfs/TB1rNq4EwHqK1RjSZFgXXa7JXXa-200-200.jpg)
 ![联合永道](https://img.alicdn.com/tfs/TB1CRAxDxYaK1RjSZFnXXa80pXa-190-190.jpg)
 ![明源云](https://img.alicdn.com/tfs/TB1.q14ErrpK1RjSZTEXXcWAVXa-219-219.jpg)
+![三诺生物](http://www.sinocare.com/public/static/images/logored6000321.png)
 
 

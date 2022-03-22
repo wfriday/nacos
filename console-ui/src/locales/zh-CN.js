@@ -20,6 +20,7 @@ const I18N_CONF = {
     docs: '文档',
     blog: '博客',
     community: '社区',
+    enterprise: 'Nacos企业版',
     languageSwitchButton: 'En',
     logout: '登出',
     changePassword: '修改密码',
@@ -141,6 +142,10 @@ const I18N_CONF = {
     pubNoData: '没有数据',
     nodeState: '节点状态',
     extendInfo: '节点元数据',
+    operation: '操作',
+    leave: '下线',
+    confirm: '确认',
+    confirmTxt: '确认要下线此集群节点?',
   },
   EditClusterDialog: {
     updateCluster: '更新集群',
@@ -163,6 +168,11 @@ const I18N_CONF = {
     protectThreshold: '保护阈值',
     serviceName: '服务名',
     editService: '编辑服务',
+    InstanceFilter: {
+      title: '元数据过滤',
+      addFilter: '添加过滤',
+      clear: '清空',
+    },
   },
   EditServiceDialog: {
     createService: '创建服务',
@@ -244,6 +254,7 @@ const I18N_CONF = {
     actionType: '操作类型:',
     configureContent: '配置内容:',
     operator: '操作人:',
+    sourceIp: '来源 IP:',
     back: '返回',
   },
   DashboardCard: {
@@ -251,6 +262,7 @@ const I18N_CONF = {
     viewDetails1: '查看详情',
   },
   ConfigurationManagement: {
+    exportBtn: '导出',
     questionnaire2: '问卷调查',
     ad: '答 ACM 前端监控调查问卷，限时领取阿里云代金券\t            详情猛戳：',
     noLongerDisplay4: '不再显示：',
@@ -535,6 +547,7 @@ const I18N_CONF = {
     rollbackDelete: '删除',
     update: '更新',
     insert: '插入',
+    additionalRollbackMessage: '此操作将删除以下配置！',
   },
   UserManagement: {
     userManagement: '用户管理',

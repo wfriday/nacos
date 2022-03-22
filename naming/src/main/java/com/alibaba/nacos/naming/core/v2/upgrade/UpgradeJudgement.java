@@ -37,12 +37,12 @@ import com.alibaba.nacos.naming.core.v2.upgrade.doublewrite.delay.DoubleWriteDel
 import com.alibaba.nacos.naming.core.v2.upgrade.doublewrite.execute.AsyncServicesCheckTask;
 import com.alibaba.nacos.naming.misc.Loggers;
 import com.alibaba.nacos.naming.misc.NamingExecuteTaskDispatcher;
-import com.alibaba.nacos.naming.monitor.MetricsMonitor;
 import com.alibaba.nacos.sys.env.EnvUtil;
 import org.codehaus.jackson.Version;
 import org.codehaus.jackson.util.VersionUtil;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PreDestroy;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -81,8 +81,15 @@ public class UpgradeJudgement extends Subscriber<MembersChangeEvent> {
     
     private ScheduledExecutorService upgradeChecker;
     
+    private SelfUpgradeChecker selfUpgradeChecker;
+    
+    private static final int MAJOR_VERSION = 2;
+    
+    private static final int MINOR_VERSION = 4;
+    
     public UpgradeJudgement(RaftPeerSet raftPeerSet, RaftCore raftCore, ClusterVersionJudgement versionJudgement,
             ServerMemberManager memberManager, ServiceManager serviceManager,
+            UpgradeStates upgradeStates,
             DoubleWriteDelayTaskEngine doubleWriteDelayTaskEngine) {
         this.raftPeerSet = raftPeerSet;
         this.raftCore = raftCore;
@@ -90,15 +97,22 @@ public class UpgradeJudgement extends Subscriber<MembersChangeEvent> {
         this.memberManager = memberManager;
         this.serviceManager = serviceManager;
         this.doubleWriteDelayTaskEngine = doubleWriteDelayTaskEngine;
-        if (!EnvUtil.getStandaloneMode()) {
-            initUpgradeChecker();
-        } else {
+        Boolean upgraded = upgradeStates.isUpgraded();
+        upgraded = upgraded != null && upgraded;
+        boolean isStandaloneMode = EnvUtil.getStandaloneMode();
+        if (isStandaloneMode || upgraded) {
             useGrpcFeatures.set(true);
+            useJraftFeatures.set(true);
+            all20XVersion.set(true);
+        }
+        if (!isStandaloneMode) {
+            initUpgradeChecker();
         }
         NotifyCenter.registerSubscriber(this);
     }
     
     private void initUpgradeChecker() {
+        selfUpgradeChecker = SelfUpgradeCheckerSpiHolder.findSelfChecker(EnvUtil.getProperty("upgrading.checker.type", "default"));
         upgradeChecker = ExecutorFactory.newSingleScheduledExecutorService(new NameThreadFactory("upgrading.checker"));
         upgradeChecker.scheduleAtFixedRate(() -> {
             if (isUseGrpcFeatures()) {
@@ -110,7 +124,6 @@ public class UpgradeJudgement extends Subscriber<MembersChangeEvent> {
                 doUpgrade();
             }
         }, 100L, 5000L, TimeUnit.MILLISECONDS);
-        Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
     }
     
     @JustForTest
@@ -137,8 +150,14 @@ public class UpgradeJudgement extends Subscriber<MembersChangeEvent> {
     
     @Override
     public void onEvent(MembersChangeEvent event) {
-        Loggers.SRV_LOG.info("member change, new members {}", event.getMembers());
-        for (Member each : event.getMembers()) {
+        if (!event.hasTriggers()) {
+            Loggers.SRV_LOG.info("Member change without no trigger. "
+                    + "It may be triggered by member lookup on startup. "
+                    + "Skip.");
+            return;
+        }
+        Loggers.SRV_LOG.info("member change, event: {}", event);
+        for (Member each : event.getTriggers()) {
             Object versionStr = each.getExtendVal(MemberMetaDataConstants.VERSION);
             // come from below 1.3.0
             if (null == versionStr) {
@@ -147,8 +166,8 @@ public class UpgradeJudgement extends Subscriber<MembersChangeEvent> {
                 return;
             }
             Version version = VersionUtil.parseVersion(versionStr.toString());
-            if (version.getMajorVersion() < 2) {
-                checkAndDowngrade(version.getMinorVersion() >= 4);
+            if (version.getMajorVersion() < MAJOR_VERSION) {
+                checkAndDowngrade(version.getMinorVersion() >= MINOR_VERSION);
                 all20XVersion.set(false);
                 return;
             }
@@ -161,6 +180,7 @@ public class UpgradeJudgement extends Subscriber<MembersChangeEvent> {
         boolean isDowngradeJraft = useJraftFeatures.getAndSet(jraftFeature);
         if (isDowngradeGrpc && isDowngradeJraft && !jraftFeature) {
             Loggers.SRV_LOG.info("Downgrade to 1.X");
+            NotifyCenter.publishEvent(new UpgradeStates.UpgradeStateChangedEvent(false));
             try {
                 raftPeerSet.init();
                 raftCore.init();
@@ -173,7 +193,7 @@ public class UpgradeJudgement extends Subscriber<MembersChangeEvent> {
     
     private boolean checkForUpgrade() {
         if (!useGrpcFeatures.get()) {
-            boolean selfCheckResult = checkServiceAndInstanceNumber() && checkDoubleWriteStatus();
+            boolean selfCheckResult = selfUpgradeChecker.isReadyToUpgrade(serviceManager, doubleWriteDelayTaskEngine);
             Member self = memberManager.getSelf();
             self.setExtendVal(MemberMetaDataConstants.READY_TO_UPGRADE, selfCheckResult);
             memberManager.updateMember(self);
@@ -190,19 +210,10 @@ public class UpgradeJudgement extends Subscriber<MembersChangeEvent> {
         return result;
     }
     
-    private boolean checkServiceAndInstanceNumber() {
-        boolean result = serviceManager.getServiceCount() == MetricsMonitor.getDomCountMonitor().get();
-        result &= serviceManager.getInstanceCount() == MetricsMonitor.getIpCountMonitor().get();
-        return result;
-    }
-    
-    private boolean checkDoubleWriteStatus() {
-        return doubleWriteDelayTaskEngine.isEmpty();
-    }
-    
     private void doUpgrade() {
         Loggers.SRV_LOG.info("Upgrade to 2.0.X");
         useGrpcFeatures.compareAndSet(false, true);
+        NotifyCenter.publishEvent(new UpgradeStates.UpgradeStateChangedEvent(true));
         useJraftFeatures.set(true);
         refreshPersistentServices();
     }
@@ -224,6 +235,7 @@ public class UpgradeJudgement extends Subscriber<MembersChangeEvent> {
     /**
      * Shut down.
      */
+    @PreDestroy
     public void shutdown() {
         if (null != upgradeChecker) {
             upgradeChecker.shutdownNow();
@@ -237,6 +249,7 @@ public class UpgradeJudgement extends Subscriber<MembersChangeEvent> {
         try {
             Loggers.SRV_LOG.info("Disable Double write, stop and clean v1.x cache and features");
             useGrpcFeatures.set(true);
+            NotifyCenter.publishEvent(new UpgradeStates.UpgradeStateChangedEvent(true));
             useJraftFeatures.set(true);
             NotifyCenter.deregisterSubscriber(this);
             doubleWriteDelayTaskEngine.shutdown();

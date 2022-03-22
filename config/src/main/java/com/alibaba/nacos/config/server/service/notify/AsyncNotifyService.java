@@ -42,7 +42,7 @@ import com.alibaba.nacos.core.cluster.MemberUtil;
 import com.alibaba.nacos.core.cluster.ServerMemberManager;
 import com.alibaba.nacos.sys.env.EnvUtil;
 import com.alibaba.nacos.sys.utils.InetUtils;
-import org.apache.commons.lang3.StringUtils;
+import com.alibaba.nacos.common.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,8 +65,23 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class AsyncNotifyService {
     
+    private static final Logger LOGGER = LoggerFactory.getLogger(AsyncNotifyService.class);
+    
+    private final NacosAsyncRestTemplate nacosAsyncRestTemplate = HttpClientManager.getNacosAsyncRestTemplate();
+    
+    private static final int MIN_RETRY_INTERVAL = 500;
+    
+    private static final int INCREASE_STEPS = 1000;
+    
+    private static final int MAX_COUNT = 6;
+    
     @Autowired
     private DumpService dumpService;
+    
+    @Autowired
+    private ConfigClusterRpcClientProxy configClusterRpcClientProxy;
+    
+    private ServerMemberManager memberManager;
     
     @Autowired
     public AsyncNotifyService(ServerMemberManager memberManager) {
@@ -119,15 +134,6 @@ public class AsyncNotifyService {
             }
         });
     }
-    
-    private final NacosAsyncRestTemplate nacosAsyncRestTemplate = HttpClientManager.getNacosAsyncRestTemplate();
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(AsyncNotifyService.class);
-    
-    @Autowired
-    private ConfigClusterRpcClientProxy configClusterRpcClientProxy;
-    
-    private ServerMemberManager memberManager;
     
     class AsyncTask implements Runnable {
         
@@ -486,11 +492,4 @@ public class AsyncNotifyService {
         }
         return delay;
     }
-    
-    private static final int MIN_RETRY_INTERVAL = 500;
-    
-    private static final int INCREASE_STEPS = 1000;
-    
-    private static final int MAX_COUNT = 6;
-    
 }

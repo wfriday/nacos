@@ -20,6 +20,7 @@ import com.alibaba.nacos.api.common.Constants;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.utils.NamingUtils;
 import com.alibaba.nacos.common.utils.JacksonUtils;
+import com.alibaba.nacos.naming.constants.FieldsConstants;
 import com.alibaba.nacos.naming.core.v2.metadata.ServiceMetadata;
 import com.alibaba.nacos.naming.core.v2.pojo.Service;
 import com.alibaba.nacos.naming.utils.ServiceUtil;
@@ -61,6 +62,7 @@ public class ServiceOperatorV1Impl implements ServiceOperator {
         service.setMetadata(metadata.getExtendData());
         service.setSelector(metadata.getSelector());
         service.setNamespaceId(namespaceId);
+        service.setGroupName(NamingUtils.getGroupName(serviceName));
         
         // now valid the service. if failed, exception will be thrown
         service.setLastModifiedMillis(System.currentTimeMillis());
@@ -72,12 +74,12 @@ public class ServiceOperatorV1Impl implements ServiceOperator {
     
     @Override
     public void update(Service service, ServiceMetadata metadata) throws NacosException {
+        String namespaceId = service.getNamespace();
         String serviceName = service.getGroupedServiceName();
-        com.alibaba.nacos.naming.core.Service serviceV1 = serviceManager
-                .getService(service.getNamespace(), serviceName);
-        if (serviceV1 == null) {
-            throw new NacosException(NacosException.INVALID_PARAM, "service " + serviceName + " not found!");
-        }
+        com.alibaba.nacos.naming.core.Service serviceV1 = serviceManager.getService(namespaceId, serviceName);
+        
+        serviceManager.checkServiceIsNull(serviceV1, namespaceId, serviceName);
+        
         serviceV1.setProtectThreshold(metadata.getProtectThreshold());
         serviceV1.setSelector(metadata.getSelector());
         serviceV1.setMetadata(metadata.getExtendData());
@@ -95,32 +97,32 @@ public class ServiceOperatorV1Impl implements ServiceOperator {
     @Override
     public ObjectNode queryService(String namespaceId, String serviceName) throws NacosException {
         com.alibaba.nacos.naming.core.Service service = serviceManager.getService(namespaceId, serviceName);
-        if (service == null) {
-            throw new NacosException(NacosException.NOT_FOUND, "service " + serviceName + " is not found!");
-        }
+        
+        serviceManager.checkServiceIsNull(service, namespaceId, serviceName);
+        
         ObjectNode res = JacksonUtils.createEmptyJsonNode();
-        res.put("name", NamingUtils.getServiceName(serviceName));
-        res.put("namespaceId", service.getNamespaceId());
-        res.put("protectThreshold", service.getProtectThreshold());
-        res.replace("metadata", JacksonUtils.transferToJsonNode(service.getMetadata()));
-        res.replace("selector", JacksonUtils.transferToJsonNode(service.getSelector()));
-        res.put("groupName", NamingUtils.getGroupName(serviceName));
+        res.put(FieldsConstants.NAME, NamingUtils.getServiceName(serviceName));
+        res.put(FieldsConstants.NAME_SPACE_ID, service.getNamespaceId());
+        res.put(FieldsConstants.PROTECT_THRESHOLD, service.getProtectThreshold());
+        res.replace(FieldsConstants.METADATA, JacksonUtils.transferToJsonNode(service.getMetadata()));
+        res.replace(FieldsConstants.SELECTOR, JacksonUtils.transferToJsonNode(service.getSelector()));
+        res.put(FieldsConstants.GROUP_NAME, NamingUtils.getGroupName(serviceName));
         
         ArrayNode clusters = JacksonUtils.createEmptyArrayNode();
         for (Cluster cluster : service.getClusterMap().values()) {
             ObjectNode clusterJson = JacksonUtils.createEmptyJsonNode();
-            clusterJson.put("name", cluster.getName());
-            clusterJson.replace("healthChecker", JacksonUtils.transferToJsonNode(cluster.getHealthChecker()));
-            clusterJson.replace("metadata", JacksonUtils.transferToJsonNode(cluster.getMetadata()));
+            clusterJson.put(FieldsConstants.NAME, cluster.getName());
+            clusterJson.replace(FieldsConstants.HEALTH_CHECKER,
+                    JacksonUtils.transferToJsonNode(cluster.getHealthChecker()));
+            clusterJson.replace(FieldsConstants.METADATA, JacksonUtils.transferToJsonNode(cluster.getMetadata()));
             clusters.add(clusterJson);
         }
-        res.replace("clusters", clusters);
+        res.replace(FieldsConstants.CLUSTERS, clusters);
         return res;
     }
     
     @Override
-    public List<String> listService(String namespaceId, String groupName, String selector, int pageSize, int pageNo)
-            throws NacosException {
+    public Collection<String> listService(String namespaceId, String groupName, String selector) throws NacosException {
         Map<String, com.alibaba.nacos.naming.core.Service> serviceMap = serviceManager.chooseServiceMap(namespaceId);
         if (serviceMap == null || serviceMap.isEmpty()) {
             return Collections.emptyList();
@@ -131,7 +133,7 @@ public class ServiceOperatorV1Impl implements ServiceOperator {
             serviceMap.entrySet()
                     .removeIf(entry -> !entry.getKey().startsWith(groupName + Constants.SERVICE_INFO_SPLITER));
         }
-        return ServiceUtil.pageServiceName(pageNo, pageSize, serviceMap);
+        return serviceMap.keySet();
     }
     
     @Override

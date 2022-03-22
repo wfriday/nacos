@@ -32,7 +32,10 @@ import com.alibaba.nacos.common.notify.NotifyCenter;
 import com.alibaba.nacos.common.notify.listener.Subscriber;
 import com.alibaba.nacos.common.utils.ConcurrentHashSet;
 import com.alibaba.nacos.common.utils.ExceptionUtil;
+import com.alibaba.nacos.common.utils.StringUtils;
 import com.alibaba.nacos.common.utils.VersionUtils;
+import com.alibaba.nacos.core.ability.ServerAbilityInitializer;
+import com.alibaba.nacos.core.ability.ServerAbilityInitializerHolder;
 import com.alibaba.nacos.core.cluster.lookup.LookupFactory;
 import com.alibaba.nacos.core.utils.Commons;
 import com.alibaba.nacos.core.utils.GenericType;
@@ -41,7 +44,6 @@ import com.alibaba.nacos.core.utils.Loggers;
 import com.alibaba.nacos.sys.env.Constants;
 import com.alibaba.nacos.sys.env.EnvUtil;
 import com.alibaba.nacos.sys.utils.InetUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.web.context.WebServerInitializedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.http.HttpStatus;
@@ -83,7 +85,19 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
     private final NacosAsyncRestTemplate asyncRestTemplate = HttpClientBeanHolder
             .getNacosAsyncRestTemplate(Loggers.CORE);
     
+    private static final int DEFAULT_SERVER_PORT = 8848;
+    
+    private static final String SERVER_PORT_PROPERTY = "server.port";
+    
+    private static final String SPRING_MANAGEMENT_CONTEXT_NAMESPACE = "management";
+    
+    private static final String MEMBER_CHANGE_EVENT_QUEUE_SIZE_PROPERTY = "nacos.member-change-event.queue.size";
+    
+    private static final int DEFAULT_MEMBER_CHANGE_EVENT_QUEUE_SIZE = 128;
+    
     private static boolean isUseAddressServer = false;
+    
+    private static final long DEFAULT_TASK_DELAY_TIME = 5_000L;
     
     /**
      * Cluster node list.
@@ -134,7 +148,7 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
     
     protected void init() throws NacosException {
         Loggers.CORE.info("Nacos-related cluster resource initialization");
-        this.port = EnvUtil.getProperty("server.port", Integer.class, 8848);
+        this.port = EnvUtil.getProperty(SERVER_PORT_PROPERTY, Integer.class, DEFAULT_SERVER_PORT);
         this.localAddress = InetUtils.getSelfIP() + ":" + port;
         this.self = MemberUtil.singleParse(this.localAddress);
         this.self.setExtendVal(MemberMetaDataConstants.VERSION, VersionUtils.version);
@@ -159,9 +173,9 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
     
     private ServerAbilities initMemberAbilities() {
         ServerAbilities serverAbilities = new ServerAbilities();
-        serverAbilities.getRemoteAbility().setSupportRemoteConnection(true);
-        // TODO naming and config ability should build and init by sub module.
-        serverAbilities.getNamingAbility().setSupportJraft(true);
+        for (ServerAbilityInitializer each : ServerAbilityInitializerHolder.getInstance().getInitializers()) {
+            each.initialize(serverAbilities);
+        }
         return serverAbilities;
     }
     
@@ -186,7 +200,8 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
     private void registerClusterEvent() {
         // Register node change events
         NotifyCenter.registerToPublisher(MembersChangeEvent.class,
-                EnvUtil.getProperty("nacos.member-change-event.queue.size", Integer.class, 128));
+                EnvUtil.getProperty(MEMBER_CHANGE_EVENT_QUEUE_SIZE_PROPERTY, Integer.class,
+                        DEFAULT_MEMBER_CHANGE_EVENT_QUEUE_SIZE));
         
         // The address information of this node needs to be dynamically modified
         // when registering the IP change of this node
@@ -223,7 +238,7 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
      * member information update.
      *
      * @param newMember {@link Member}
-     * @return update is successw
+     * @return update is success
      */
     public boolean update(Member newMember) {
         Loggers.CLUSTER.debug("member information update : {}", newMember);
@@ -242,7 +257,7 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
             MemberUtil.copy(newMember, member);
             if (isPublishChangeEvent) {
                 // member basic data changes and all listeners need to be notified
-                notifyMemberChange();
+                notifyMemberChange(member);
             }
             return member;
         });
@@ -250,25 +265,27 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
         return true;
     }
     
-    void notifyMemberChange() {
-        NotifyCenter.publishEvent(MembersChangeEvent.builder().members(allMembers()).build());
+    void notifyMemberChange(Member member) {
+        NotifyCenter.publishEvent(MembersChangeEvent.builder().trigger(member).members(allMembers()).build());
     }
     
     /**
      * Whether the node exists within the cluster.
      *
      * @param address ip:port
-     * @return is exist
+     * @return is exists
      */
     public boolean hasMember(String address) {
         boolean result = serverList.containsKey(address);
-        if (!result) {
-            // If only IP information is passed in, a fuzzy match is required
-            for (Map.Entry<String, Member> entry : serverList.entrySet()) {
-                if (StringUtils.contains(entry.getKey(), address)) {
-                    result = true;
-                    break;
-                }
+        if (result) {
+            return true;
+        }
+        
+        // If only IP information is passed in, a fuzzy match is required
+        for (Map.Entry<String, Member> entry : serverList.entrySet()) {
+            if (StringUtils.contains(entry.getKey(), address)) {
+                result = true;
+                break;
             }
         }
         return result;
@@ -368,15 +385,18 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
         
         Collection<Member> finalMembers = allMembers();
         
-        Loggers.CLUSTER.warn("[serverlist] updated to : {}", finalMembers);
-        
         // Persist the current cluster node information to cluster.conf
         // <important> need to put the event publication into a synchronized block to ensure
         // that the event publication is sequential
         if (hasChange) {
+            Loggers.CLUSTER.warn("[serverlist] updated to : {}", finalMembers);
             MemberUtil.syncToFile(finalMembers);
             Event event = MembersChangeEvent.builder().members(finalMembers).build();
             NotifyCenter.publishEvent(event);
+        } else {
+            if (Loggers.CLUSTER.isDebugEnabled()) {
+                Loggers.CLUSTER.debug("[serverlist] not updated, is still : {}", finalMembers);
+            }
         }
         
         return hasChange;
@@ -426,9 +446,15 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
     
     @Override
     public void onApplicationEvent(WebServerInitializedEvent event) {
+        String serverNamespace = event.getApplicationContext().getServerNamespace();
+        if (SPRING_MANAGEMENT_CONTEXT_NAMESPACE.equals(serverNamespace)) {
+            // ignore
+            // fix#issue https://github.com/alibaba/nacos/issues/7230
+            return;
+        }
         getSelf().setState(NodeState.UP);
         if (!EnvUtil.getStandaloneMode()) {
-            GlobalExecutor.scheduleByCommon(this.infoReportTask, 5_000L);
+            GlobalExecutor.scheduleByCommon(this.infoReportTask, DEFAULT_TASK_DELAY_TIME);
         }
         EnvUtil.setPort(event.getWebServer().getPort());
         EnvUtil.setLocalAddress(this.localAddress);
@@ -506,53 +532,61 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
                 Header header = Header.newInstance().addParam(Constants.NACOS_SERVER_HEADER, VersionUtils.version);
                 AuthHeaderUtil.addIdentityToHeader(header);
                 asyncRestTemplate
-                        .post(url, header,
-                                Query.EMPTY, getSelf(), reference.getType(), new Callback<String>() {
-                                    @Override
-                                    public void onReceive(RestResult<String> result) {
-                                        if (result.getCode() == HttpStatus.NOT_IMPLEMENTED.value()
-                                                || result.getCode() == HttpStatus.NOT_FOUND.value()) {
-                                            Loggers.CLUSTER
-                                                    .warn("{} version is too low, it is recommended to upgrade the version : {}",
-                                                            target, VersionUtils.version);
-                                            Member memberNew = target.copy();
-                                            if (memberNew.getAbilities() != null
-                                                    && memberNew.getAbilities().getRemoteAbility() != null && memberNew
-                                                    .getAbilities().getRemoteAbility().isSupportRemoteConnection()) {
-                                                memberNew.getAbilities().getRemoteAbility()
-                                                        .setSupportRemoteConnection(false);
-                                                Loggers.CLUSTER
-                                                        .warn("{} : Clear support remote connection flag,target may rollback version ",
-                                                                memberNew);
-                                                
-                                                update(memberNew);
-                                            }
-                                            return;
-                                        }
-                                        if (result.ok()) {
-                                            MemberUtil.onSuccess(ServerMemberManager.this, target);
-                                        } else {
-                                            Loggers.CLUSTER
-                                                    .warn("failed to report new info to target node : {}, result : {}",
-                                                            target.getAddress(), result);
-                                            MemberUtil.onFail(ServerMemberManager.this, target);
-                                        }
+                        .post(url, header, Query.EMPTY, getSelf(), reference.getType(), new Callback<String>() {
+                            @Override
+                            public void onReceive(RestResult<String> result) {
+                                if (result.getCode() == HttpStatus.NOT_IMPLEMENTED.value()
+                                        || result.getCode() == HttpStatus.NOT_FOUND.value()) {
+                                    Loggers.CLUSTER
+                                            .warn("{} version is too low, it is recommended to upgrade the version : {}",
+                                                    target, VersionUtils.version);
+                                    Member memberNew = null;
+                                    if (target.getExtendVal(MemberMetaDataConstants.VERSION) != null) {
+                                        memberNew = target.copy();
+                                        // Clean up remote version info.
+                                        // This value may still stay in extend info when remote server has been downgraded to old version.
+                                        memberNew.delExtendVal(MemberMetaDataConstants.VERSION);
+                                        memberNew.delExtendVal(MemberMetaDataConstants.READY_TO_UPGRADE);
+                                        Loggers.CLUSTER.warn("{} : Clean up version info,"
+                                                + " target has been downgrade to old version.", memberNew);
                                     }
-                                    
-                                    @Override
-                                    public void onError(Throwable throwable) {
+                                    if (target.getAbilities() != null
+                                            && target.getAbilities().getRemoteAbility() != null && target.getAbilities()
+                                            .getRemoteAbility().isSupportRemoteConnection()) {
+                                        if (memberNew == null) {
+                                            memberNew = target.copy();
+                                        }
+                                        memberNew.getAbilities().getRemoteAbility().setSupportRemoteConnection(false);
                                         Loggers.CLUSTER
-                                                .error("failed to report new info to target node : {}, error : {}",
-                                                        target.getAddress(),
-                                                        ExceptionUtil.getAllExceptionMsg(throwable));
-                                        MemberUtil.onFail(ServerMemberManager.this, target, throwable);
+                                                .warn("{} : Clear support remote connection flag,target may rollback version ",
+                                                        memberNew);
                                     }
-                                    
-                                    @Override
-                                    public void onCancel() {
-                                    
+                                    if (memberNew != null) {
+                                        update(memberNew);
                                     }
-                                });
+                                    return;
+                                }
+                                if (result.ok()) {
+                                    MemberUtil.onSuccess(ServerMemberManager.this, target);
+                                } else {
+                                    Loggers.CLUSTER.warn("failed to report new info to target node : {}, result : {}",
+                                            target.getAddress(), result);
+                                    MemberUtil.onFail(ServerMemberManager.this, target);
+                                }
+                            }
+                            
+                            @Override
+                            public void onError(Throwable throwable) {
+                                Loggers.CLUSTER.error("failed to report new info to target node : {}, error : {}",
+                                        target.getAddress(), ExceptionUtil.getAllExceptionMsg(throwable));
+                                MemberUtil.onFail(ServerMemberManager.this, target, throwable);
+                            }
+                            
+                            @Override
+                            public void onCancel() {
+                            
+                            }
+                        });
             } catch (Throwable ex) {
                 Loggers.CLUSTER.error("failed to report new info to target node : {}, error : {}", target.getAddress(),
                         ExceptionUtil.getAllExceptionMsg(ex));

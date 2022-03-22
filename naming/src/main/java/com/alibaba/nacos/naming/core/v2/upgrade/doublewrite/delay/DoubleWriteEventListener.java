@@ -20,6 +20,7 @@ import com.alibaba.nacos.common.notify.Event;
 import com.alibaba.nacos.common.notify.NotifyCenter;
 import com.alibaba.nacos.common.notify.listener.Subscriber;
 import com.alibaba.nacos.naming.core.Service;
+import com.alibaba.nacos.naming.core.v2.event.publisher.NamingEventPublisherFactory;
 import com.alibaba.nacos.naming.core.v2.event.service.ServiceEvent;
 import com.alibaba.nacos.naming.core.v2.upgrade.UpgradeJudgement;
 import com.alibaba.nacos.naming.misc.Loggers;
@@ -29,6 +30,10 @@ import com.alibaba.nacos.sys.utils.ApplicationUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
+
+import static com.alibaba.nacos.naming.core.v2.upgrade.doublewrite.delay.DoubleWriteAction.REMOVE;
+import static com.alibaba.nacos.naming.core.v2.upgrade.doublewrite.delay.DoubleWriteAction.UPDATE;
+import static com.alibaba.nacos.naming.core.v2.upgrade.doublewrite.delay.DoubleWriteContent.METADATA;
 
 /**
  * Event listener for double write.
@@ -48,7 +53,7 @@ public class DoubleWriteEventListener extends Subscriber<ServiceEvent.ServiceCha
             DoubleWriteDelayTaskEngine doubleWriteDelayTaskEngine) {
         this.upgradeJudgement = upgradeJudgement;
         this.doubleWriteDelayTaskEngine = doubleWriteDelayTaskEngine;
-        NotifyCenter.registerSubscriber(this);
+        NotifyCenter.registerSubscriber(this, NamingEventPublisherFactory.getInstance());
         stopDoubleWrite = EnvUtil.getStandaloneMode();
         if (!stopDoubleWrite) {
             Thread doubleWriteEnabledChecker = new DoubleWriteEnabledChecker();
@@ -78,8 +83,9 @@ public class DoubleWriteEventListener extends Subscriber<ServiceEvent.ServiceCha
      * Double write service metadata from v2 to v1.
      *
      * @param service service for v2
+     * @param remove  is removing service for v2
      */
-    public void doubleWriteMetadataToV1(com.alibaba.nacos.naming.core.v2.pojo.Service service) {
+    public void doubleWriteMetadataToV1(com.alibaba.nacos.naming.core.v2.pojo.Service service, boolean remove) {
         if (stopDoubleWrite) {
             return;
         }
@@ -87,7 +93,7 @@ public class DoubleWriteEventListener extends Subscriber<ServiceEvent.ServiceCha
             return;
         }
         doubleWriteDelayTaskEngine.addTask(ServiceChangeV2Task.getKey(service),
-                new ServiceChangeV2Task(service, DoubleWriteContent.METADATA));
+                new ServiceChangeV2Task(service, METADATA, remove ? REMOVE : UPDATE));
     }
     
     /**
@@ -114,8 +120,9 @@ public class DoubleWriteEventListener extends Subscriber<ServiceEvent.ServiceCha
      *
      * @param service   service for v1
      * @param ephemeral ephemeral of service
+     * @param remove    is removing service for v1
      */
-    public void doubleWriteMetadataToV2(Service service, boolean ephemeral) {
+    public void doubleWriteMetadataToV2(Service service, boolean ephemeral, boolean remove) {
         if (stopDoubleWrite) {
             return;
         }
@@ -125,7 +132,7 @@ public class DoubleWriteEventListener extends Subscriber<ServiceEvent.ServiceCha
         String namespace = service.getNamespaceId();
         String serviceName = service.getName();
         doubleWriteDelayTaskEngine.addTask(ServiceChangeV1Task.getKey(namespace, serviceName, ephemeral),
-                new ServiceChangeV1Task(namespace, serviceName, ephemeral, DoubleWriteContent.METADATA));
+                new ServiceChangeV1Task(namespace, serviceName, ephemeral, METADATA, remove ? REMOVE : UPDATE));
     }
     
     private class DoubleWriteEnabledChecker extends Thread {

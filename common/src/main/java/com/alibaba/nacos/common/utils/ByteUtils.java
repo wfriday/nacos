@@ -22,7 +22,7 @@ import com.alibaba.nacos.api.common.Constants;
 
 /**
  * ByteUtils.
- *
+ * 字节工具类
  * @author <a href="mailto:liaochuntao@live.com">liaochuntao</a>
  */
 public final class ByteUtils {
@@ -31,7 +31,7 @@ public final class ByteUtils {
     
     /**
      * String to byte array.
-     *
+     * string对象转成字节数组
      * @param input input string
      * @return byte array of string
      */
@@ -44,7 +44,7 @@ public final class ByteUtils {
     
     /**
      * Object to byte array.
-     *
+     * 对象转成字节数组
      * @param obj input obj
      * @return byte array of object
      */
@@ -57,7 +57,7 @@ public final class ByteUtils {
     
     /**
      * Byte array to string.
-     *
+     * 字节数组转成string对象
      * @param bytes byte array
      * @return string
      */
@@ -68,10 +68,20 @@ public final class ByteUtils {
         return new String(bytes, Charset.forName(Constants.ENCODE));
     }
     
+    /**
+     * 判断字节数组是否为空
+     * @param data 字节数组
+     * @return boolean
+     */
     public static boolean isEmpty(byte[] data) {
         return data == null || data.length == 0;
     }
     
+    /**
+     * 字节数组为空
+     * @param data 字节数组
+     * @return boolean
+     */
     public static boolean isNotEmpty(byte[] data) {
         return !isEmpty(data);
     }

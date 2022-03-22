@@ -48,7 +48,7 @@ public class DefaultPublisher extends Thread implements EventPublisher {
     
     private Class<? extends Event> eventType;
     
-    protected final ConcurrentHashSet<Subscriber> subscribers = new ConcurrentHashSet<Subscriber>();
+    protected final ConcurrentHashSet<Subscriber> subscribers = new ConcurrentHashSet<>();
     
     private int queueMaxSize = -1;
     
@@ -65,7 +65,7 @@ public class DefaultPublisher extends Thread implements EventPublisher {
         setName("nacos.publisher-" + type.getName());
         this.eventType = type;
         this.queueMaxSize = bufferSize;
-        this.queue = new ArrayBlockingQueue<Event>(bufferSize);
+        this.queue = new ArrayBlockingQueue<>(bufferSize);
         start();
     }
     
@@ -119,7 +119,7 @@ public class DefaultPublisher extends Thread implements EventPublisher {
                 UPDATER.compareAndSet(this, lastEventSequence, Math.max(lastEventSequence, event.sequence()));
             }
         } catch (Throwable ex) {
-            LOGGER.error("Event listener exception : {}", ex);
+            LOGGER.error("Event listener exception : ", ex);
         }
     }
     
@@ -172,6 +172,11 @@ public class DefaultPublisher extends Thread implements EventPublisher {
      */
     void receiveEvent(Event event) {
         final long currentEventSequence = event.sequence();
+        
+        if (!hasSubscriber()) {
+            LOGGER.warn("[NotifyCenter] the {} is lost, because there is no subscriber.", event);
+            return;
+        }
         
         // Notification single event listener
         for (Subscriber subscriber : subscribers) {

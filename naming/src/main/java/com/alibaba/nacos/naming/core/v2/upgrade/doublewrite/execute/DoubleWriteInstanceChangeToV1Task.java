@@ -39,6 +39,8 @@ public class DoubleWriteInstanceChangeToV1Task extends AbstractExecuteTask {
     
     private final Service service;
     
+    private static final String NAME = "consistencyDelegate";
+    
     public DoubleWriteInstanceChangeToV1Task(Service service) {
         this.service = service;
     }
@@ -57,14 +59,14 @@ public class DoubleWriteInstanceChangeToV1Task extends AbstractExecuteTask {
             String key = KeyBuilder.buildInstanceListKey(service.getNamespace(), service.getGroupedServiceName(),
                     service.isEphemeral());
             ConsistencyService consistencyService = ApplicationUtils
-                    .getBean("consistencyDelegate", ConsistencyService.class);
+                    .getBean(NAME, ConsistencyService.class);
             consistencyService.put(key, newInstances);
         } catch (Exception e) {
             if (Loggers.SRV_LOG.isDebugEnabled()) {
                 Loggers.SRV_LOG.debug("Double write task for {} instance from 2 to 1 failed", service, e);
             }
             ServiceChangeV2Task retryTask = new ServiceChangeV2Task(service, DoubleWriteContent.INSTANCE);
-            retryTask.setTaskInterval(3000L);
+            retryTask.setTaskInterval(INTERVAL);
             String taskKey = ServiceChangeV2Task.getKey(service);
             ApplicationUtils.getBean(DoubleWriteDelayTaskEngine.class).addTask(taskKey, retryTask);
         }
@@ -73,18 +75,10 @@ public class DoubleWriteInstanceChangeToV1Task extends AbstractExecuteTask {
     private Instances getNewInstances() {
         Instances result = new Instances();
         ServiceStorage serviceStorage = ApplicationUtils.getBean(ServiceStorage.class);
+        InstanceUpgradeHelper instanceUpgradeHelper = ApplicationUtils.getBean(InstanceUpgradeHelper.class);
         long currentTimeStamp = System.currentTimeMillis();
         for (Instance each : serviceStorage.getData(service).getHosts()) {
-            com.alibaba.nacos.naming.core.Instance instance = new com.alibaba.nacos.naming.core.Instance();
-            instance.setIp(each.getIp());
-            instance.setPort(each.getPort());
-            instance.setClusterName(each.getClusterName());
-            instance.setHealthy(each.isHealthy());
-            instance.setEphemeral(each.isEphemeral());
-            instance.setWeight(each.getWeight());
-            instance.setMetadata(each.getMetadata());
-            instance.setEnabled(each.isEnabled());
-            instance.setServiceName(each.getServiceName());
+            com.alibaba.nacos.naming.core.Instance instance = instanceUpgradeHelper.toV1(each);
             instance.setLastBeat(currentTimeStamp);
             result.getInstanceList().add(instance);
         }

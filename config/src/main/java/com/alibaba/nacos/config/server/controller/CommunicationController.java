@@ -26,7 +26,7 @@ import com.alibaba.nacos.config.server.service.notify.NotifyService;
 import com.alibaba.nacos.config.server.utils.GroupKey2;
 import com.alibaba.nacos.core.remote.Connection;
 import com.alibaba.nacos.core.remote.ConnectionManager;
-import org.apache.commons.lang3.StringUtils;
+import com.alibaba.nacos.common.utils.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -103,20 +103,20 @@ public class CommunicationController {
         // rpc listeners.
         String groupKey = GroupKey2.getKey(dataId, group, tenant);
         Set<String> listenersClients = configChangeListenContext.getListeners(groupKey);
-        if (CollectionUtils.isNotEmpty(listenersClients)) {
-            Map<String, String> lisentersGroupkeyStatus = new HashMap<String, String>(listenersClients.size(), 1);
-            for (String connectionId : listenersClients) {
-                Connection client = connectionManager.getConnection(connectionId);
-                if (client != null) {
-                    String md5 = configChangeListenContext.getListenKeyMd5(connectionId, groupKey);
-                    if (md5 != null) {
-                        lisentersGroupkeyStatus.put(client.getMetaInfo().getClientIp(), md5);
-                    }
+        if (CollectionUtils.isEmpty(listenersClients)) {
+            return result;
+        }
+        Map<String, String> lisentersGroupkeyStatus = new HashMap<String, String>(listenersClients.size(), 1);
+        for (String connectionId : listenersClients) {
+            Connection client = connectionManager.getConnection(connectionId);
+            if (client != null) {
+                String md5 = configChangeListenContext.getListenKeyMd5(connectionId, groupKey);
+                if (md5 != null) {
+                    lisentersGroupkeyStatus.put(client.getMetaInfo().getClientIp(), md5);
                 }
             }
-            result.getLisentersGroupkeyStatus().putAll(lisentersGroupkeyStatus);
         }
-        
+        result.getLisentersGroupkeyStatus().putAll(lisentersGroupkeyStatus);
         return result;
     }
     

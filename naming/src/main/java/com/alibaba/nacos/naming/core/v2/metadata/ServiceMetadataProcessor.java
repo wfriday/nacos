@@ -32,7 +32,7 @@ import com.alibaba.nacos.naming.core.v2.pojo.Service;
 import com.alibaba.nacos.naming.core.v2.upgrade.doublewrite.delay.DoubleWriteEventListener;
 import com.alibaba.nacos.naming.constants.Constants;
 import com.alibaba.nacos.sys.utils.ApplicationUtils;
-import org.apache.commons.lang3.reflect.TypeUtils;
+import com.alibaba.nacos.common.utils.TypeUtils;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Type;
@@ -121,7 +121,7 @@ public class ServiceMetadataProcessor extends RequestProcessor4CP {
             Service singleton = ServiceManager.getInstance().getSingleton(service);
             namingMetadataManager.updateServiceMetadata(singleton, op.getMetadata());
         }
-        doubleWriteMetadata(service);
+        doubleWriteMetadata(service, false);
     }
     
     private void updateServiceMetadata(MetadataOperation<ServiceMetadata> op) {
@@ -136,17 +136,18 @@ public class ServiceMetadataProcessor extends RequestProcessor4CP {
             Service singleton = ServiceManager.getInstance().getSingleton(service);
             namingMetadataManager.updateServiceMetadata(singleton, op.getMetadata());
         }
-        doubleWriteMetadata(service);
+        doubleWriteMetadata(service, false);
     }
     
     /**
      * Only for downgrade to v1.x.
      *
      * @param service double write service
+     * @param remove  is removing service of v2
      * @deprecated will remove in v2.1.x
      */
-    private void doubleWriteMetadata(Service service) {
-        ApplicationUtils.getBean(DoubleWriteEventListener.class).doubleWriteMetadataToV1(service);
+    private void doubleWriteMetadata(Service service, boolean remove) {
+        ApplicationUtils.getBean(DoubleWriteEventListener.class).doubleWriteMetadataToV1(service, remove);
     }
     
     /**
@@ -171,8 +172,12 @@ public class ServiceMetadataProcessor extends RequestProcessor4CP {
     private void deleteServiceMetadata(MetadataOperation<ServiceMetadata> op) {
         Service service = Service.newService(op.getNamespace(), op.getGroup(), op.getServiceName());
         namingMetadataManager.removeServiceMetadata(service);
-        ServiceManager.getInstance().removeSingleton(service);
+        Service removed = ServiceManager.getInstance().removeSingleton(service);
+        if (removed != null) {
+            service = removed;
+        }
         serviceStorage.removeData(service);
+        doubleWriteMetadata(service, true);
     }
     
     @Override

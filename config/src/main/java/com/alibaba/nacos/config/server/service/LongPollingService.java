@@ -29,7 +29,7 @@ import com.alibaba.nacos.config.server.utils.GroupKey;
 import com.alibaba.nacos.config.server.utils.LogUtil;
 import com.alibaba.nacos.config.server.utils.MD5Util;
 import com.alibaba.nacos.config.server.utils.RequestUtil;
-import org.apache.commons.lang3.StringUtils;
+import com.alibaba.nacos.common.utils.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.AsyncContext;
@@ -185,9 +185,8 @@ public class LongPollingService {
                 }
             }
         }
-        
-        SampleResult sampleResult = mergeSampleResult(sampleResultLst);
-        return sampleResult;
+
+        return mergeSampleResult(sampleResultLst);
     }
     
     public SampleResult getCollectSubscribleInfoByIp(String ip) {
@@ -400,27 +399,31 @@ public class LongPollingService {
                         getRetainIps().put(ClientLongPolling.this.ip, System.currentTimeMillis());
                         
                         // Delete subscriber's relations.
-                        allSubs.remove(ClientLongPolling.this);
+                        boolean removeFlag = allSubs.remove(ClientLongPolling.this);
                         
-                        if (isFixedPolling()) {
-                            LogUtil.CLIENT_LOG
-                                    .info("{}|{}|{}|{}|{}|{}", (System.currentTimeMillis() - createTime), "fix",
-                                            RequestUtil.getRemoteIp((HttpServletRequest) asyncContext.getRequest()),
-                                            "polling", clientMd5Map.size(), probeRequestSize);
-                            List<String> changedGroups = MD5Util
-                                    .compareMd5((HttpServletRequest) asyncContext.getRequest(),
-                                            (HttpServletResponse) asyncContext.getResponse(), clientMd5Map);
-                            if (changedGroups.size() > 0) {
-                                sendResponse(changedGroups);
+                        if (removeFlag) {
+                            if (isFixedPolling()) {
+                                LogUtil.CLIENT_LOG
+                                        .info("{}|{}|{}|{}|{}|{}", (System.currentTimeMillis() - createTime), "fix",
+                                                RequestUtil.getRemoteIp((HttpServletRequest) asyncContext.getRequest()),
+                                                "polling", clientMd5Map.size(), probeRequestSize);
+                                List<String> changedGroups = MD5Util
+                                        .compareMd5((HttpServletRequest) asyncContext.getRequest(),
+                                                (HttpServletResponse) asyncContext.getResponse(), clientMd5Map);
+                                if (changedGroups.size() > 0) {
+                                    sendResponse(changedGroups);
+                                } else {
+                                    sendResponse(null);
+                                }
                             } else {
+                                LogUtil.CLIENT_LOG
+                                        .info("{}|{}|{}|{}|{}|{}", (System.currentTimeMillis() - createTime), "timeout",
+                                                RequestUtil.getRemoteIp((HttpServletRequest) asyncContext.getRequest()),
+                                                "polling", clientMd5Map.size(), probeRequestSize);
                                 sendResponse(null);
                             }
                         } else {
-                            LogUtil.CLIENT_LOG
-                                    .info("{}|{}|{}|{}|{}|{}", (System.currentTimeMillis() - createTime), "timeout",
-                                            RequestUtil.getRemoteIp((HttpServletRequest) asyncContext.getRequest()),
-                                            "polling", clientMd5Map.size(), probeRequestSize);
-                            sendResponse(null);
+                            LogUtil.DEFAULT_LOG.warn("client subsciber's relations delete fail.");
                         }
                     } catch (Throwable t) {
                         LogUtil.DEFAULT_LOG.error("long polling error:" + t.getMessage(), t.getCause());

@@ -20,10 +20,10 @@ import com.alibaba.nacos.api.config.remote.request.ConfigPublishRequest;
 import com.alibaba.nacos.api.config.remote.response.ConfigPublishResponse;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.remote.request.RequestMeta;
+import com.alibaba.nacos.api.remote.response.ResponseCode;
 import com.alibaba.nacos.auth.annotation.Secured;
-import com.alibaba.nacos.auth.common.ActionTypes;
 import com.alibaba.nacos.common.utils.MapUtil;
-import com.alibaba.nacos.config.server.auth.ConfigResourceParser;
+import com.alibaba.nacos.common.utils.StringUtils;
 import com.alibaba.nacos.config.server.model.ConfigInfo;
 import com.alibaba.nacos.config.server.model.event.ConfigDataChangeEvent;
 import com.alibaba.nacos.config.server.service.AggrWhitelist;
@@ -35,8 +35,9 @@ import com.alibaba.nacos.config.server.utils.TimeUtils;
 import com.alibaba.nacos.core.remote.RequestHandler;
 import com.alibaba.nacos.core.remote.control.TpsControl;
 import com.alibaba.nacos.core.utils.Loggers;
+import com.alibaba.nacos.plugin.auth.constant.ActionTypes;
+import com.alibaba.nacos.plugin.auth.constant.SignType;
 import com.alibaba.nacos.sys.utils.InetUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
@@ -61,7 +62,7 @@ public class ConfigPublishRequestHandler extends RequestHandler<ConfigPublishReq
     @Override
     @TpsControl(pointName = "ConfigPublish", parsers = {ConfigPublishGroupKeyParser.class,
             ConfigPublishGroupParser.class})
-    @Secured(action = ActionTypes.WRITE, resource = "", parser = ConfigResourceParser.class)
+    @Secured(action = ActionTypes.WRITE, signType = SignType.CONFIG)
     public ConfigPublishResponse handle(ConfigPublishRequest request, RequestMeta meta) throws NacosException {
         
         try {
@@ -76,6 +77,7 @@ public class ConfigPublishRequestHandler extends RequestHandler<ConfigPublishReq
             final String appName = request.getAdditionParam("appName");
             final String type = request.getAdditionParam("type");
             final String srcUser = request.getAdditionParam("src_user");
+            final String encryptedDataKey = request.getAdditionParam("encryptedDataKey");
             
             // check tenant
             ParamUtils.checkParam(dataId, group, "datumId", content);
@@ -96,18 +98,19 @@ public class ConfigPublishRequestHandler extends RequestHandler<ConfigPublishReq
             }
             
             final Timestamp time = TimeUtils.getCurrentTime();
-            String betaIps = request.getAdditionParam("betaIps");
             ConfigInfo configInfo = new ConfigInfo(dataId, group, tenant, appName, content);
             configInfo.setMd5(request.getCasMd5());
             configInfo.setType(type);
+            configInfo.setEncryptedDataKey(encryptedDataKey);
+            String betaIps = request.getAdditionParam("betaIps");
             if (StringUtils.isBlank(betaIps)) {
                 if (StringUtils.isBlank(tag)) {
                     if (StringUtils.isNotBlank(request.getCasMd5())) {
                         boolean casSuccess = persistService
                                 .insertOrUpdateCas(srcIp, srcUser, configInfo, time, configAdvanceInfo, false);
                         if (!casSuccess) {
-                            return ConfigPublishResponse
-                                    .buildFailResponse("Cas publish fail,server md5 may have changed.");
+                            return ConfigPublishResponse.buildFailResponse(ResponseCode.FAIL.getCode(),
+                                    "Cas publish fail,server md5 may have changed.");
                         }
                     } else {
                         persistService.insertOrUpdate(srcIp, srcUser, configInfo, time, configAdvanceInfo, false);
@@ -119,8 +122,8 @@ public class ConfigPublishRequestHandler extends RequestHandler<ConfigPublishReq
                         boolean casSuccess = persistService
                                 .insertOrUpdateTagCas(configInfo, tag, srcIp, srcUser, time, false);
                         if (!casSuccess) {
-                            return ConfigPublishResponse
-                                    .buildFailResponse("Cas publish tag config fail,server md5 may have changed.");
+                            return ConfigPublishResponse.buildFailResponse(ResponseCode.FAIL.getCode(),
+                                    "Cas publish tag config fail,server md5 may have changed.");
                         }
                     } else {
                         persistService.insertOrUpdateTag(configInfo, tag, srcIp, srcUser, time, false);
@@ -135,8 +138,8 @@ public class ConfigPublishRequestHandler extends RequestHandler<ConfigPublishReq
                     boolean casSuccess = persistService
                             .insertOrUpdateBetaCas(configInfo, betaIps, srcIp, srcUser, time, false);
                     if (!casSuccess) {
-                        return ConfigPublishResponse
-                                .buildFailResponse("Cas publish beta config fail,server md5 may have changed.");
+                        return ConfigPublishResponse.buildFailResponse(ResponseCode.FAIL.getCode(),
+                                "Cas publish beta config fail,server md5 may have changed.");
                     }
                 } else {
                     persistService.insertOrUpdateBeta(configInfo, betaIps, srcIp, srcUser, time, false);
@@ -151,7 +154,9 @@ public class ConfigPublishRequestHandler extends RequestHandler<ConfigPublishReq
             return ConfigPublishResponse.buildSuccessResponse();
         } catch (Exception e) {
             Loggers.REMOTE_DIGEST.error("[ConfigPublishRequestHandler] publish config error ,request ={}", request, e);
-            return ConfigPublishResponse.buildFailResponse(e.getMessage());
+            return ConfigPublishResponse.buildFailResponse(
+                    (e instanceof NacosException) ? ((NacosException) e).getErrCode() : ResponseCode.FAIL.getCode(),
+                    e.getMessage());
         }
     }
     

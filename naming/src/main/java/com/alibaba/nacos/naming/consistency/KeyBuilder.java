@@ -17,7 +17,7 @@
 package com.alibaba.nacos.naming.consistency;
 
 import com.alibaba.nacos.naming.misc.UtilsAndCommons;
-import org.apache.commons.lang3.StringUtils;
+import com.alibaba.nacos.common.utils.StringUtils;
 
 import static com.alibaba.nacos.naming.misc.UtilsAndCommons.RAFT_CACHE_FILE_PREFIX;
 
@@ -40,6 +40,10 @@ public class KeyBuilder {
     public static final String BRIEF_SERVICE_META_KEY_PREFIX = "meta.";
     
     public static final String BRIEF_INSTANCE_LIST_KEY_PREFIX = "iplist.";
+    
+    public static final String RESOURCE_KEY_SNAPSHOT = "snapshot";
+    
+    public static final String RESOURCE_KEY_CHECKSUM = "checksum";
     
     private static String buildEphemeralInstanceListKey(String namespaceId, String serviceName) {
         return INSTANCE_LIST_KEY_PREFIX + EPHEMERAL_KEY_PREFIX + namespaceId + NAMESPACE_KEY_CONNECTOR + serviceName;

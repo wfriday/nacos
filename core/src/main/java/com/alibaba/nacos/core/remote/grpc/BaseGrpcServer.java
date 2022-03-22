@@ -67,6 +67,10 @@ public abstract class BaseGrpcServer extends BaseRpcServer {
     
     private static final String REQUEST_METHOD_NAME = "request";
     
+    private static final String GRPC_MAX_INBOUND_MSG_SIZE_PROPERTY = "nacos.remote.server.grpc.maxinbound.message.size";
+    
+    private static final long DEFAULT_GRPC_MAX_INBOUND_MSG_SIZE = 10 * 1024 * 1024;
+    
     @Autowired
     private GrpcRequestAcceptor grpcCommonRequestAcceptor;
     
@@ -150,8 +154,8 @@ public abstract class BaseGrpcServer extends BaseRpcServer {
     
     private int getInboundMessageSize() {
         String messageSize = System
-                .getProperty("nacos.remote.server.grpc.maxinbound.message.size", String.valueOf(10 * 1024 * 1024));
-        return Integer.valueOf(messageSize);
+                .getProperty(GRPC_MAX_INBOUND_MSG_SIZE_PROPERTY, String.valueOf(DEFAULT_GRPC_MAX_INBOUND_MSG_SIZE));
+        return Integer.parseInt(messageSize);
     }
     
     private Channel getInternalChannel(ServerCall serverCall) {
@@ -169,9 +173,7 @@ public abstract class BaseGrpcServer extends BaseRpcServer {
                 .setResponseMarshaller(ProtoUtils.marshaller(Payload.getDefaultInstance())).build();
         
         final ServerCallHandler<Payload, Payload> payloadHandler = ServerCalls
-                .asyncUnaryCall((request, responseObserver) -> {
-                    grpcCommonRequestAcceptor.request(request, responseObserver);
-                });
+                .asyncUnaryCall((request, responseObserver) -> grpcCommonRequestAcceptor.request(request, responseObserver));
         
         final ServerServiceDefinition serviceDefOfUnaryPayload = ServerServiceDefinition.builder(REQUEST_SERVICE_NAME)
                 .addMethod(unaryPayloadMethod, payloadHandler).build();

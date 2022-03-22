@@ -32,7 +32,7 @@ import static com.alibaba.nacos.sys.env.Constants.STANDALONE_SPRING_PROFILE;
 
 /**
  * Standalone {@link Profile} {@link ApplicationListener} for {@link ApplicationEnvironmentPreparedEvent}.
- *
+ * 独立模式
  * @author <a href="mailto:mercyblitz@gmail.com">Mercy</a>
  * @see ConfigurableEnvironment#addActiveProfile(String)
  * @since 0.2.2
@@ -46,7 +46,7 @@ public class StandaloneProfileApplicationListener
     public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) {
         
         ConfigurableEnvironment environment = event.getEnvironment();
-
+        // 如果启动时环境配置nacos.standlone为true 则设置active为独立模式
         if (environment.getProperty(STANDALONE_MODE_PROPERTY_NAME, boolean.class, false)) {
             environment.addActiveProfile(STANDALONE_SPRING_PROFILE);
         }

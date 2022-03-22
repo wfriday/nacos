@@ -17,7 +17,7 @@
 package com.alibaba.nacos.naming.cluster;
 
 import com.alibaba.nacos.common.notify.NotifyCenter;
-import com.alibaba.nacos.common.utils.IPUtil;
+import com.alibaba.nacos.common.utils.InternetAddressUtil;
 import com.alibaba.nacos.common.utils.JacksonUtils;
 import com.alibaba.nacos.core.cluster.Member;
 import com.alibaba.nacos.core.cluster.MemberChangeListener;
@@ -35,8 +35,7 @@ import com.alibaba.nacos.naming.misc.SwitchDomain;
 import com.alibaba.nacos.naming.misc.Synchronizer;
 import com.alibaba.nacos.naming.misc.UtilsAndCommons;
 import com.alibaba.nacos.sys.env.EnvUtil;
-import com.google.common.collect.Maps;
-import org.apache.commons.lang3.StringUtils;
+import com.alibaba.nacos.common.utils.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -126,7 +125,7 @@ public class ServerListManager extends MemberChangeListener {
                 continue;
             }
     
-            String[] info = IPUtil.splitIPPortStr(params[1]);
+            String[] info = InternetAddressUtil.splitIPPortStr(params[1]);
             Member server = Optional.ofNullable(memberManager.find(params[1]))
                     .orElse(Member.builder().ip(info[0]).state(NodeState.UP)
                             .port(Integer.parseInt(info[1])).build());
@@ -176,7 +175,7 @@ public class ServerListManager extends MemberChangeListener {
             final String path =
                     UtilsAndCommons.NACOS_NAMING_OPERATOR_CONTEXT + UtilsAndCommons.NACOS_NAMING_CLUSTER_CONTEXT
                             + "/state";
-            final Map<String, String> params = Maps.newHashMapWithExpectedSize(2);
+            final Map<String, String> params = new HashMap(2);
             final String server = target.getAddress();
             
             try {
@@ -224,7 +223,7 @@ public class ServerListManager extends MemberChangeListener {
                 }
                 
                 if (allServers.size() > 0 && !EnvUtil.getLocalAddress()
-                        .contains(IPUtil.localHostIP())) {
+                        .contains(InternetAddressUtil.localHostIP())) {
                     for (Member server : allServers) {
                         if (Objects.equals(server.getAddress(), EnvUtil.getLocalAddress())) {
                             continue;

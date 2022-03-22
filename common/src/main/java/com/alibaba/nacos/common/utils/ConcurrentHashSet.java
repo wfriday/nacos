@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Concurrent Hash Set implement by {@link ConcurrentHashMap}.
- *
+ * Concurrent Hash Set 实现 ConcurrentHashSet对象
  * @author <a href="mailto:liaochuntao@live.com">liaochuntao</a>
  */
 public class ConcurrentHashSet<E> extends AbstractSet<E> {

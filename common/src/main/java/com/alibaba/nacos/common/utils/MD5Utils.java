@@ -21,12 +21,12 @@ import java.security.NoSuchAlgorithmException;
 
 /**
  * MD5 util.
- *
+ * md5工具类
  * @author nacos
  */
 @SuppressWarnings("PMD.ClassNamingShouldBeCamelRule")
 public class MD5Utils {
-    
+    /** 加密后的小写的数组值 */
     private static final char[] DIGITS_LOWER = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd',
             'e', 'f'};
     
@@ -43,7 +43,7 @@ public class MD5Utils {
     
     /**
      * Calculate MD5 hex string.
-     *
+     * 获取加密后的md5的16进制字符串值
      * @param bytes byte arrays
      * @return MD5 hex string of input
      * @throws NoSuchAlgorithmException if can't load md5 digest spi.
@@ -77,14 +77,17 @@ public class MD5Utils {
     
     /**
      * Convert a byte array into a visible string.
+     * 将字节数组转换成可视化的string类型的值
      */
     public static String encodeHexString(byte[] bytes) {
         int l = bytes.length;
-        
+        // 左移,数值扩大一倍
         char[] out = new char[l << 1];
         
         for (int i = 0, j = 0; i < l; i++) {
+            // 0xF0 为15 * 4 获取对应的值后将数值 除16 右移4位
             out[j++] = DIGITS_LOWER[(0xF0 & bytes[i]) >>> 4];
+            // 0x0F 值为15
             out[j++] = DIGITS_LOWER[0x0F & bytes[i]];
         }
         

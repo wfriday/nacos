@@ -20,13 +20,14 @@ import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.pojo.Instance;
 import com.alibaba.nacos.api.naming.utils.NamingUtils;
 import com.alibaba.nacos.common.utils.JacksonUtils;
+import com.alibaba.nacos.naming.constants.FieldsConstants;
 import com.alibaba.nacos.naming.pojo.ClusterInfo;
 import com.alibaba.nacos.naming.pojo.IpAddressInfo;
 import com.alibaba.nacos.naming.pojo.ServiceDetailInfo;
 import com.alibaba.nacos.naming.pojo.ServiceView;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
+import com.alibaba.nacos.common.utils.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -41,7 +42,7 @@ import java.util.Map;
  *
  * @author xiweng.yy
  */
-@Component()
+@Component
 public class CatalogServiceV1Impl implements CatalogService {
     
     private final ServiceManager serviceManager;
@@ -52,22 +53,22 @@ public class CatalogServiceV1Impl implements CatalogService {
     
     @Override
     public Object getServiceDetail(String namespaceId, String groupName, String serviceName) throws NacosException {
-        Service detailedService = serviceManager.getService(namespaceId, NamingUtils.getGroupedName(serviceName, groupName));
+        Service detailedService = serviceManager
+                .getService(namespaceId, NamingUtils.getGroupedName(serviceName, groupName));
         
-        if (detailedService == null) {
-            throw new NacosException(NacosException.NOT_FOUND,
-                    String.format("service %s@@%s is not found!", groupName, serviceName));
-        }
+        serviceManager.checkServiceIsNull(detailedService, namespaceId, serviceName);
+        
         ObjectNode serviceObject = JacksonUtils.createEmptyJsonNode();
-        serviceObject.put("name", serviceName);
-        serviceObject.put("protectThreshold", detailedService.getProtectThreshold());
-        serviceObject.put("groupName", groupName);
-        serviceObject.replace("selector", JacksonUtils.transferToJsonNode(detailedService.getSelector()));
-        serviceObject.replace("metadata", JacksonUtils.transferToJsonNode(detailedService.getMetadata()));
+        serviceObject.put(FieldsConstants.NAME, serviceName);
+        serviceObject.put(FieldsConstants.PROTECT_THRESHOLD, detailedService.getProtectThreshold());
+        serviceObject.put(FieldsConstants.GROUP_NAME, groupName);
+        serviceObject.replace(FieldsConstants.SELECTOR, JacksonUtils.transferToJsonNode(detailedService.getSelector()));
+        serviceObject.replace(FieldsConstants.METADATA, JacksonUtils.transferToJsonNode(detailedService.getMetadata()));
         
         ObjectNode detailView = JacksonUtils.createEmptyJsonNode();
-        detailView.replace("service", serviceObject);
-        detailView.replace("clusters", JacksonUtils.transferToJsonNode(detailedService.getClusterMap().values()));
+        detailView.replace(FieldsConstants.SERVICE, serviceObject);
+        detailView.replace(FieldsConstants.CLUSTERS,
+                JacksonUtils.transferToJsonNode(detailedService.getClusterMap().values()));
         return detailView;
     }
     
@@ -75,10 +76,9 @@ public class CatalogServiceV1Impl implements CatalogService {
     public List<? extends Instance> listInstances(String namespaceId, String groupName, String serviceName,
             String clusterName) throws NacosException {
         Service service = serviceManager.getService(namespaceId, NamingUtils.getGroupedName(serviceName, groupName));
-        if (service == null) {
-            throw new NacosException(NacosException.NOT_FOUND,
-                    String.format("service %s@@%s is not found!", groupName, serviceName));
-        }
+        
+        serviceManager.checkServiceIsNull(service, namespaceId, serviceName);
+        
         if (!service.getClusterMap().containsKey(clusterName)) {
             throw new NacosException(NacosException.NOT_FOUND, "cluster " + clusterName + " is not found!");
         }
@@ -97,8 +97,8 @@ public class CatalogServiceV1Impl implements CatalogService {
                 .getPagedService(namespaceId, pageNo - 1, pageSize, param, instancePattern, services,
                         ignoreEmptyService);
         if (CollectionUtils.isEmpty(services)) {
-            result.replace("serviceList", JacksonUtils.transferToJsonNode(Collections.emptyList()));
-            result.put("count", 0);
+            result.replace(FieldsConstants.SERVICE_LIST, JacksonUtils.transferToJsonNode(Collections.emptyList()));
+            result.put(FieldsConstants.COUNT, 0);
             return result;
         }
         
@@ -114,8 +114,8 @@ public class CatalogServiceV1Impl implements CatalogService {
             serviceViews.add(serviceView);
         }
         
-        result.set("serviceList", JacksonUtils.transferToJsonNode(serviceViews));
-        result.put("count", total);
+        result.set(FieldsConstants.SERVICE_LIST, JacksonUtils.transferToJsonNode(serviceViews));
+        result.put(FieldsConstants.COUNT, total);
         
         return result;
     }

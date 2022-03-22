@@ -22,7 +22,7 @@ import org.springframework.core.env.ConfigurableEnvironment;
 
 /**
  * Nacos Application Listener, execute init process.
- *
+ * nacos应用监听者 执行初始化进程
  * @author horizonzy
  * @since 1.4.1
  */
