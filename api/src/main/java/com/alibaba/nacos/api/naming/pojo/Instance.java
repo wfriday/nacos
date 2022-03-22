@@ -39,54 +39,54 @@ public class Instance implements Serializable {
     private static final long serialVersionUID = -742906310567291979L;
     
     /**
-     * unique id of this instance.
+     * unique id of this instance. 实例id 唯一
      */
     private String instanceId;
     
     /**
-     * instance ip.
+     * instance ip. 实例ip
      */
     private String ip;
     
     /**
-     * instance port.
+     * instance port.实例端口
      */
     private int port;
     
     /**
-     * instance weight.
+     * instance weight. 实例权重
      */
     private double weight = 1.0D;
     
     /**
-     * instance health status.
+     * instance health status. 实例状态
      */
     private boolean healthy = true;
     
     /**
-     * If instance is enabled to accept request.
+     * If instance is enabled to accept request. 实例启用
      */
     private boolean enabled = true;
     
     /**
      * If instance is ephemeral.
-     *
+     * 是否临时
      * @since 1.0.0
      */
     private boolean ephemeral = true;
     
     /**
-     * cluster information of instance.
+     * cluster information of instance. 实例集群名称
      */
     private String clusterName;
     
     /**
-     * Service information of instance.
+     * Service information of instance.实例服务名称
      */
     private String serviceName;
     
     /**
-     * user extended attributes.
+     * user extended attributes. 元数据
      */
     private Map<String, String> metadata = new HashMap<String, String>();
     

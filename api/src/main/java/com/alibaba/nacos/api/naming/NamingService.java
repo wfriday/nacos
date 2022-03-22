@@ -27,14 +27,14 @@ import java.util.List;
 
 /**
  * Naming Service.
- *
+ * 命名空间服务
  * @author nkorange
  */
 public interface NamingService {
     
     /**
      * register a instance to service.
-     *
+     * 注册一个服务实例(服务名 ip port)
      * @param serviceName name of service
      * @param ip          instance ip
      * @param port        instance port
@@ -44,7 +44,7 @@ public interface NamingService {
     
     /**
      * register a instance to service.
-     *
+     * 注册一个服务实例(服务名 组 ip port)
      * @param serviceName name of service
      * @param groupName   group of service
      * @param ip          instance ip
@@ -55,7 +55,7 @@ public interface NamingService {
     
     /**
      * register a instance to service with specified cluster name.
-     *
+     * 注册一个服务实例(服务名 ip port 集群名)
      * @param serviceName name of service
      * @param ip          instance ip
      * @param port        instance port
@@ -66,7 +66,7 @@ public interface NamingService {
     
     /**
      * register a instance to service with specified cluster name.
-     *
+     * 注册一个服务实例(服务名 组 ip port 集群名)
      * @param serviceName name of service
      * @param groupName   group of service
      * @param ip          instance ip
@@ -79,7 +79,7 @@ public interface NamingService {
     
     /**
      * register a instance to service with specified instance properties.
-     *
+     * 注册一个服务实例(服务名 服务实例)
      * @param serviceName name of service
      * @param instance    instance to register
      * @throws NacosException nacos exception
@@ -88,7 +88,7 @@ public interface NamingService {
     
     /**
      * register a instance to service with specified instance properties.
-     *
+     * 注册一个服务实例(服务名 组 服务实例)
      * @param serviceName name of service
      * @param groupName   group of service
      * @param instance    instance to register
@@ -98,7 +98,7 @@ public interface NamingService {
     
     /**
      * deregister instance from a service.
-     *
+     * 注销服务(服务名 ip port)
      * @param serviceName name of service
      * @param ip          instance ip
      * @param port        instance port
@@ -108,7 +108,7 @@ public interface NamingService {
     
     /**
      * deregister instance from a service.
-     *
+     * 注销服务(服务名 组 ip port)
      * @param serviceName name of service
      * @param groupName   group of service
      * @param ip          instance ip
@@ -119,7 +119,7 @@ public interface NamingService {
     
     /**
      * deregister instance with specified cluster name from a service.
-     *
+     * 注销服务(服务名 ip port 集群名)
      * @param serviceName name of service
      * @param ip          instance ip
      * @param port        instance port
@@ -130,7 +130,7 @@ public interface NamingService {
     
     /**
      * deregister instance with specified cluster name from a service.
-     *
+     * 注销服务(服务名 组 ip port 集群名)
      * @param serviceName name of service
      * @param groupName   group of service
      * @param ip          instance ip
@@ -143,7 +143,7 @@ public interface NamingService {
     
     /**
      * deregister instance with full instance information and default groupName.
-     *
+     * 注销服务(服务名 服务实例)
      * @param serviceName name of service
      * @param instance    instance
      * @throws NacosException nacos exception
@@ -152,7 +152,7 @@ public interface NamingService {
     
     /**
      * deregister instance with full instance information.
-     *
+     * 注销服务(服务名 组 服务实例)
      * @param serviceName name of service
      * @param groupName   group of service
      * @param instance    instance information
@@ -162,7 +162,7 @@ public interface NamingService {
     
     /**
      * get all instances of a service.
-     *
+     * 获取服务的全部实例
      * @param serviceName name of service
      * @return A list of instance
      * @throws NacosException nacos exception
@@ -171,7 +171,7 @@ public interface NamingService {
     
     /**
      * get all instances of a service.
-     *
+     * 获取该组下的服务的全部实例
      * @param serviceName name of service
      * @param groupName   group of service
      * @return A list of instance
@@ -181,7 +181,7 @@ public interface NamingService {
     
     /**
      * Get all instances of a service.
-     *
+     * 获取全部实例
      * @param serviceName name of service
      * @param subscribe   if subscribe the service
      * @return A list of instance

@@ -43,7 +43,9 @@ public class SpringApplicationRunListener implements org.springframework.boot.Sp
     private List<NacosApplicationListener> nacosApplicationListeners = new ArrayList<>();
     
     {
+        // 日志应用监听,配置日志格式,默认使用META-INF/logback/nacos.xml 日志文件格式
         nacosApplicationListeners.add(new LoggingApplicationListener());
+        // 启动应用监听
         nacosApplicationListeners.add(new StartingApplicationListener());
     }
     
@@ -52,6 +54,9 @@ public class SpringApplicationRunListener implements org.springframework.boot.Sp
         this.args = args;
     }
     
+    /**
+     * 容器正在启动
+     */
     @Override
     public void starting() {
         for (NacosApplicationListener nacosApplicationListener : nacosApplicationListeners) {
@@ -59,6 +64,7 @@ public class SpringApplicationRunListener implements org.springframework.boot.Sp
         }
     }
     
+    // 环境准备
     @Override
     public void environmentPrepared(ConfigurableEnvironment environment) {
         for (NacosApplicationListener nacosApplicationListener : nacosApplicationListeners) {
@@ -66,6 +72,10 @@ public class SpringApplicationRunListener implements org.springframework.boot.Sp
         }
     }
     
+    /**
+     * 容器准备
+     * @param context
+     */
     @Override
     public void contextPrepared(ConfigurableApplicationContext context) {
         for (NacosApplicationListener nacosApplicationListener : nacosApplicationListeners) {
@@ -73,6 +83,10 @@ public class SpringApplicationRunListener implements org.springframework.boot.Sp
         }
     }
     
+    /**
+     * 容器加载
+     * @param context
+     */
     @Override
     public void contextLoaded(ConfigurableApplicationContext context) {
         for (NacosApplicationListener nacosApplicationListener : nacosApplicationListeners) {
@@ -80,6 +94,10 @@ public class SpringApplicationRunListener implements org.springframework.boot.Sp
         }
     }
     
+    /**
+     * 容器启动
+     * @param context
+     */
     @Override
     public void started(ConfigurableApplicationContext context) {
         for (NacosApplicationListener nacosApplicationListener : nacosApplicationListeners) {
@@ -87,6 +105,10 @@ public class SpringApplicationRunListener implements org.springframework.boot.Sp
         }
     }
     
+    /**
+     * 容器运行
+     * @param context
+     */
     @Override
     public void running(ConfigurableApplicationContext context) {
         for (NacosApplicationListener nacosApplicationListener : nacosApplicationListeners) {
@@ -94,6 +116,11 @@ public class SpringApplicationRunListener implements org.springframework.boot.Sp
         }
     }
     
+    /**
+     * 容器失败
+     * @param context
+     * @param exception
+     */
     @Override
     public void failed(ConfigurableApplicationContext context, Throwable exception) {
         for (NacosApplicationListener nacosApplicationListener : nacosApplicationListeners) {

@@ -32,7 +32,7 @@ import static com.alibaba.nacos.sys.env.Constants.STANDALONE_SPRING_PROFILE;
 
 /**
  * Standalone {@link Profile} {@link ApplicationListener} for {@link ApplicationEnvironmentPreparedEvent}.
- * 独立模式
+ * 独立模式应用监听
  * @author <a href="mailto:mercyblitz@gmail.com">Mercy</a>
  * @see ConfigurableEnvironment#addActiveProfile(String)
  * @since 0.2.2

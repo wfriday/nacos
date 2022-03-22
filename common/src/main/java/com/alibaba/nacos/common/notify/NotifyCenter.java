@@ -38,7 +38,7 @@ import static com.alibaba.nacos.api.exception.NacosException.SERVER_ERROR;
 
 /**
  * Unified Event Notify Center.
- *
+ * 事件通知中心
  * @author <a href="mailto:liaochuntao@live.com">liaochuntao</a>
  * @author zongtanghu
  */

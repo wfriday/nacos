@@ -99,18 +99,19 @@ public class StartingApplicationListener implements NacosApplicationListener {
          *  然后强制在其下创建logs conf data
          */
         makeWorkDir();
-        
+        /** 注入环境对象 */
         injectEnvironment(environment);
-        
+        /** 读取配置文件,并且监听配置文件的内容改变 */
         loadPreProperties(environment);
-        
+        /** 初始化系统配置 */
         initSystemProperty();
     }
     
     @Override
     public void contextPrepared(ConfigurableApplicationContext context) {
+        // 读取集群配置文件
         logClusterConf();
-        
+        // 集群启动过程中需要每秒打印一次日志 nacos正在运行
         logStarting();
     }
     
@@ -121,11 +122,13 @@ public class StartingApplicationListener implements NacosApplicationListener {
     
     @Override
     public void started(ConfigurableApplicationContext context) {
+        // nacos启动完成
         starting = false;
-        
+        // 关闭nacos正在启动每秒打印一次的日志的定时线程池处理器
         closeExecutor();
-        
+        // 设置nacos启动完成
         ApplicationUtils.setStarted(true);
+        // 存储模式 默认是内部引用的derby、外部数据库可使用mysql
         judgeStorageMode(context.getEnvironment());
     }
     
@@ -161,6 +164,7 @@ public class StartingApplicationListener implements NacosApplicationListener {
             SOURCES.putAll(EnvUtil.loadProperties(EnvUtil.getApplicationConfFileResource()));
             environment.getPropertySources()
                     .addLast(new OriginTrackedMapPropertySource(NACOS_APPLICATION_CONF, SOURCES));
+            /** 注册监听配置文件内容 */
             registerWatcher();
         } catch (Exception e) {
             throw new NacosRuntimeException(NacosException.SERVER_ERROR, e);

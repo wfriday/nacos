@@ -89,6 +89,7 @@ public class WatchFileCenter {
      */
     public static synchronized boolean registerWatcher(final String paths, FileWatcher watcher) throws NacosException {
         checkState();
+        // 当前监听文件夹个数 默认不超过16
         if (NOW_WATCH_JOB_CNT == MAX_WATCH_FILE_JOB) {
             return false;
         }
