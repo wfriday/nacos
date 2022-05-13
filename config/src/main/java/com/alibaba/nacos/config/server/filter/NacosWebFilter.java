@@ -31,7 +31,7 @@ import static com.alibaba.nacos.config.server.utils.LogUtil.DEFAULT_LOG;
 
 /**
  * Web encode filter.
- *
+ * web 编码拦截器 设置request和response的编码为UTF-8
  * @author Nacos
  */
 public class NacosWebFilter implements Filter {

@@ -51,27 +51,27 @@ public class NotifyCenter {
     public static int shareBufferSize;
     
     private static final AtomicBoolean CLOSED = new AtomicBoolean(false);
-    
+    // BiFunction接口 通过 Event 以及 队列大小 生成 事件发布者类 默认DefaultPublisher
     private static final EventPublisherFactory DEFAULT_PUBLISHER_FACTORY;
-    
+    // 生成单例对象
     private static final NotifyCenter INSTANCE = new NotifyCenter();
-    
+    // 共享事件,处理慢事件
     private DefaultSharePublisher sharePublisher;
-    
+    // 默认的发布者 DefaultPublisher
     private static Class<? extends EventPublisher> clazz;
     
     /**
-     * Publisher management container.
+     * Publisher management container. 发布者管理者容器
      */
     private final Map<String, EventPublisher> publisherMap = new ConcurrentHashMap<>(16);
     
     static {
         // Internal ArrayBlockingQueue buffer size. For applications with high write throughput,
-        // this value needs to be increased appropriately. default value is 16384
+        // this value needs to be increased appropriately. default value is 16384 阻塞队列大小
         String ringBufferSizeProperty = "nacos.core.notify.ring-buffer-size";
         ringBufferSize = Integer.getInteger(ringBufferSizeProperty, 16384);
         
-        // The size of the public publisher's message staging queue buffer
+        // The size of the public publisher's message staging queue buffer 公用发布者发布消息最大的长度
         String shareBufferSizeProperty = "nacos.core.notify.share-buffer-size";
         shareBufferSize = Integer.getInteger(shareBufferSizeProperty, 1024);
         

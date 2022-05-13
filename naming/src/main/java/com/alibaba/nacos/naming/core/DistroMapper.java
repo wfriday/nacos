@@ -44,6 +44,7 @@ public class DistroMapper extends MemberChangeListener {
     
     /**
      * List of service nodes, you must ensure that the order of healthyList is the same for all nodes.
+     * 在服务节点列表中，必须确保所有节点的healthyList顺序相同。
      */
     private volatile List<String> healthyList = new ArrayList<>();
     

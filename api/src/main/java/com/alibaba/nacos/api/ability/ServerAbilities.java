@@ -33,10 +33,19 @@ public class ServerAbilities implements Serializable {
     
     private static final long serialVersionUID = -2120543002911304171L;
     
+    /**
+     * 服务器节点
+     */
     private ServerRemoteAbility remoteAbility = new ServerRemoteAbility();
     
+    /**
+     * 配置
+     */
     private ServerConfigAbility configAbility = new ServerConfigAbility();
     
+    /**
+     * 服务
+     */
     private ServerNamingAbility namingAbility = new ServerNamingAbility();
     
     public ServerRemoteAbility getRemoteAbility() {

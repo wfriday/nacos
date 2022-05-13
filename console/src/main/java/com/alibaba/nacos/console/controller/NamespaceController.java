@@ -45,7 +45,7 @@ import java.util.regex.Pattern;
 
 /**
  * namespace service.
- *
+ * 命名空间服务
  * @author Nacos
  */
 @RestController
@@ -55,14 +55,29 @@ public class NamespaceController {
     @Autowired
     private PersistService persistService;
     
+    /**
+     * 正则表达式 命名空间id 必须是字符数字和 -
+     */
     private final Pattern namespaceIdCheckPattern = Pattern.compile("^[\\w-]+");
     
+    /**
+     * 命名空间id最大长度为128
+     */
     private static final int NAMESPACE_ID_MAX_LENGTH = 128;
     
+    /**
+     * 默认命名空间 public
+     */
     private static final String DEFAULT_NAMESPACE = "public";
     
+    /**
+     * 默认集群
+     */
     private static final int DEFAULT_QUOTA = 200;
     
+    /**
+     * 默认创建者
+     */
     private static final String DEFAULT_CREATE_SOURCE = "nacos";
     
     private static final String DEFAULT_NAMESPACE_SHOW_NAME = "Public";

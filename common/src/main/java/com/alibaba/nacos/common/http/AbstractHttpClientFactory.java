@@ -82,6 +82,7 @@ public abstract class AbstractHttpClientFactory implements HttpClientFactory {
     
     @Override
     public NacosAsyncRestTemplate createNacosAsyncRestTemplate() {
+        // 获取http连接超时时间和读取超时时间
         final HttpClientConfig originalRequestConfig = buildHttpClientConfig();
         final DefaultConnectingIOReactor ioreactor = getIoReactor();
         final RequestConfig defaultConfig = getRequestConfig();

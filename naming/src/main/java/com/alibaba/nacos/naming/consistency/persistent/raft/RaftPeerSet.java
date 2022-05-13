@@ -80,6 +80,7 @@ public class RaftPeerSet extends MemberChangeListener implements Closeable {
     @PostConstruct
     public void init() {
         NotifyCenter.registerSubscriber(this);
+        
         changePeers(memberManager.allMembers());
     }
     
@@ -342,6 +343,7 @@ public class RaftPeerSet extends MemberChangeListener implements Closeable {
         for (Member member : members) {
             
             final String address = member.getAddress();
+            
             if (peers.containsKey(address)) {
                 tmpPeers.put(address, peers.get(address));
                 continue;

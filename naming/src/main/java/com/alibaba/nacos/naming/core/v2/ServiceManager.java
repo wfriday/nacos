@@ -52,7 +52,8 @@ public class ServiceManager {
     
     /**
      * Get singleton service. Put to manager if no singleton.
-     *
+     * 获取单例的服务对象,如果服务有原先的服务,则直接返回,没有则添加新服务
+     * 同理命名空间也是一样
      * @param service new service
      * @return if service is exist, return exist service, otherwise return new service
      */

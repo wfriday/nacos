@@ -91,7 +91,7 @@ public class MemberUtil {
         
         Member target = Member.builder().ip(address).port(port).state(NodeState.UP).build();
         Map<String, Object> extendInfo = new HashMap<>(4);
-        // The Raft Port information needs to be set by default
+        // The Raft Port information needs to be set by default raft端口信息默认是端口-1000
         extendInfo.put(MemberMetaDataConstants.RAFT_PORT, String.valueOf(calculateRaftPort(target)));
         extendInfo.put(MemberMetaDataConstants.READY_TO_UPGRADE, true);
         target.setExtendInfo(extendInfo);

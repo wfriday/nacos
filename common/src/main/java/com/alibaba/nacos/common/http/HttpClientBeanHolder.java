@@ -37,7 +37,7 @@ public final class HttpClientBeanHolder {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientBeanHolder.class);
     
     private static final Map<String, NacosRestTemplate> SINGLETON_REST = new HashMap<String, NacosRestTemplate>(10);
-    
+    // 单例异步rest存储   key为类全名,key为对应restTemplate
     private static final Map<String, NacosAsyncRestTemplate> SINGLETON_ASYNC_REST = new HashMap<String, NacosAsyncRestTemplate>(
             10);
     
@@ -61,6 +61,7 @@ public final class HttpClientBeanHolder {
             throw new NullPointerException("httpClientFactory is null");
         }
         String factoryName = httpClientFactory.getClass().getName();
+        // 双重检查 + 锁 确保单例
         NacosRestTemplate nacosRestTemplate = SINGLETON_REST.get(factoryName);
         if (nacosRestTemplate == null) {
             synchronized (SINGLETON_REST) {

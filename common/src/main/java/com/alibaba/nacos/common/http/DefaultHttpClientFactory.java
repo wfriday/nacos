@@ -35,6 +35,7 @@ public class DefaultHttpClientFactory extends AbstractHttpClientFactory {
     
     @Override
     protected HttpClientConfig buildHttpClientConfig() {
+        // 连接超时5000ms  读取超时2500ms
         return HttpClientConfig.builder().setConTimeOutMillis(TIMEOUT).setReadTimeOutMillis(TIMEOUT >> 1).build();
     }
     

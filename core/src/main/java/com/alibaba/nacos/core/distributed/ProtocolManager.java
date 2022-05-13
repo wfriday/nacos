@@ -45,9 +45,9 @@ import java.util.Set;
 @SuppressWarnings("all")
 @Component(value = "ProtocolManager")
 public class ProtocolManager extends MemberChangeListener implements DisposableBean {
-    
+    // cp协议
     private CPProtocol cpProtocol;
-    
+    // ap协议
     private APProtocol apProtocol;
     
     private final ServerMemberManager memberManager;

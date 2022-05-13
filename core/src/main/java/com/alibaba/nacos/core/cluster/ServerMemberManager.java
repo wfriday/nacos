@@ -63,7 +63,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * Cluster node management in Nacos.
- *
+ * nacos的集群节点管理器
  * <p>{@link ServerMemberManager#init()} Cluster node manager initialization {@link ServerMemberManager#shutdown()} The
  * cluster node manager is down {@link ServerMemberManager#getSelf()} Gets local node information {@link
  * ServerMemberManager#getServerList()} Gets the cluster node dictionary {@link ServerMemberManager#getMemberAddressInfos()}
@@ -82,6 +82,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 @Component(value = "serverMemberManager")
 public class ServerMemberManager implements ApplicationListener<WebServerInitializedEvent> {
     
+    // 获取异步http请求处理
     private final NacosAsyncRestTemplate asyncRestTemplate = HttpClientBeanHolder
             .getNacosAsyncRestTemplate(Loggers.CORE);
     
@@ -101,6 +102,7 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
     
     /**
      * Cluster node list.
+     * 集群节点集合
      */
     private volatile ConcurrentSkipListMap<String, Member> serverList;
     
@@ -111,31 +113,37 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
     
     /**
      * port.
+     * 端口
      */
     private int port;
     
     /**
      * Address information for the local node.
+     * 本地地址
      */
     private String localAddress;
     
     /**
      * Addressing pattern instances.
+     *寻址模式实例
      */
     private MemberLookup lookup;
     
     /**
      * self member obj.
+     * 自己的机器对象
      */
     private volatile Member self;
     
     /**
      * here is always the node information of the "UP" state.
+     * 在线的节点信息
      */
     private volatile Set<String> memberAddressInfos = new ConcurrentHashSet<>();
     
     /**
      * Broadcast this node element information task.
+     * 广播其他节点的事件任务
      */
     private final MemberInfoReportTask infoReportTask = new MemberInfoReportTask();
     
@@ -153,15 +161,15 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
         this.self = MemberUtil.singleParse(this.localAddress);
         this.self.setExtendVal(MemberMetaDataConstants.VERSION, VersionUtils.version);
         
-        // init abilities.
+        // init abilities. 初始化能力 设置remoteAbilityInitializer和NamingAbilityInitializer的值为true
         this.self.setAbilities(initMemberAbilities());
         
         serverList.put(self.getAddress(), self);
         
-        // register NodeChangeEvent publisher to NotifyManager
+        // register NodeChangeEvent publisher to NotifyManager 注册集群事件发布者和监听IpChange改变时间
         registerClusterEvent();
         
-        // Initializes the lookup mode
+        // Initializes the lookup mode 初始化look up模式
         initAndStartLookup();
         
         if (serverList.isEmpty()) {
@@ -198,7 +206,7 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
     }
     
     private void registerClusterEvent() {
-        // Register node change events
+        // Register node change events 注册节点改变事件的发布者
         NotifyCenter.registerToPublisher(MembersChangeEvent.class,
                 EnvUtil.getProperty(MEMBER_CHANGE_EVENT_QUEUE_SIZE_PROPERTY, Integer.class,
                         DEFAULT_MEMBER_CHANGE_EVENT_QUEUE_SIZE));
@@ -208,7 +216,9 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
         NotifyCenter.registerSubscriber(new Subscriber<InetUtils.IPChangeEvent>() {
             @Override
             public void onEvent(InetUtils.IPChangeEvent event) {
+                // 机器ip修改事件通知
                 String newAddress = event.getNewIP() + ":" + port;
+                // 修改当前的ip
                 ServerMemberManager.this.localAddress = newAddress;
                 EnvUtil.setLocalAddress(localAddress);
                 

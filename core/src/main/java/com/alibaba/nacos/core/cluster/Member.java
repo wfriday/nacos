@@ -34,23 +34,23 @@ import java.util.TreeMap;
 
 /**
  * Cluster member node.
- *
+ * 集群机器节点
  * @author <a href="mailto:liaochuntao@live.com">liaochuntao</a>
  */
 public class Member implements Comparable<Member>, Cloneable, Serializable {
-    
+    /** ip */
     private String ip;
-    
+    /** 端口 */
     private int port = -1;
-    
+    /** 机器节点状态 */
     private volatile NodeState state = NodeState.UP;
     
     private Map<String, Object> extendInfo = Collections.synchronizedMap(new TreeMap<>());
-    
+    /** 地址 ip:prot */
     private String address = "";
     
     private transient int failAccessCnt = 0;
-    
+    /** */
     private ServerAbilities abilities = new ServerAbilities();
     
     public Member() {

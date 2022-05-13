@@ -159,9 +159,9 @@ public class RaftCore implements Closeable {
     public void init() throws Exception {
         Loggers.RAFT.info("initializing Raft sub-system");
         final long start = System.currentTimeMillis();
-        
+        // 从缓存文件加载数据
         raftStore.loadDatums(notifier, datums);
-        
+        // 从文件中获取任期,默认0
         setTerm(NumberUtils.toLong(raftStore.loadMeta().getProperty("term"), 0L));
         
         Loggers.RAFT.info("cache loaded, datum count: {}, current term: {}", datums.size(), peers.getTerm());

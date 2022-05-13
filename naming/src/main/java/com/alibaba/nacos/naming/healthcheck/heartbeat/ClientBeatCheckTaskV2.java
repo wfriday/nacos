@@ -30,7 +30,7 @@ import java.util.Collection;
 
 /**
  * Client beat check task of service for version 2.x.
- *
+ * 客户端心跳检测定时任务
  * @author nkorange
  */
 public class ClientBeatCheckTaskV2 extends AbstractExecuteTask implements BeatCheckTask, NacosHealthCheckTask {

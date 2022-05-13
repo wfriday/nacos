@@ -21,21 +21,21 @@ import com.alibaba.nacos.common.http.client.NacosRestTemplate;
 
 /**
  * http Client Factory.
- *
+ * http客户端工厂
  * @author mai.jh
  */
 public interface HttpClientFactory {
     
     /**
      * create new nacost rest.
-     *
+     * 创建nacos的rest
      * @return NacosRestTemplate
      */
     NacosRestTemplate createNacosRestTemplate();
     
     /**
      * create new nacos async rest.
-     *
+     * 创建异步的nacos的rest
      * @return NacosAsyncRestTemplate
      */
     NacosAsyncRestTemplate createNacosAsyncRestTemplate();

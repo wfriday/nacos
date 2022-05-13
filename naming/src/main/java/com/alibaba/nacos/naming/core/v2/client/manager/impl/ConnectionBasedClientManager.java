@@ -49,6 +49,7 @@ public class ConnectionBasedClientManager extends ClientConnectionEventListener 
     private final ConcurrentMap<String, ConnectionBasedClient> clients = new ConcurrentHashMap<>();
     
     public ConnectionBasedClientManager() {
+        // 客户端链接管理器,客户端过期处理器,每隔5s执行一次
         GlobalExecutor
                 .scheduleExpiredClientCleaner(new ExpiredClientCleaner(this), 0, Constants.DEFAULT_HEART_BEAT_INTERVAL,
                         TimeUnit.MILLISECONDS);
@@ -145,8 +146,11 @@ public class ConnectionBasedClientManager extends ClientConnectionEventListener 
         
         @Override
         public void run() {
+            // 当前时间
             long currentTime = System.currentTimeMillis();
+            // 获取所有的客户端id
             for (String each : clientManager.allClientId()) {
+                // 获取链接的客户端信息
                 ConnectionBasedClient client = (ConnectionBasedClient) clientManager.getClient(each);
                 if (null != client && client.isExpire(currentTime)) {
                     clientManager.clientDisconnected(each);

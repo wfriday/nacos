@@ -94,11 +94,11 @@ public class DefaultPublisher extends Thread implements EventPublisher {
     public void run() {
         openEventHandler();
     }
-    
+    /**  时间处理 */
     void openEventHandler() {
         try {
-            
-            // This variable is defined to resolve the problem which message overstock in the queue.
+            // 防止事件丢失,等第一个注册者进来,或者最长等待60s
+            // This variable is defined to resolve the problem which message overstock in the queue. 等待次数60
             int waitTimes = 60;
             // To ensure that messages are not lost, enable EventHandler when
             // waiting for the first Subscriber to register
@@ -109,11 +109,12 @@ public class DefaultPublisher extends Thread implements EventPublisher {
                 ThreadUtils.sleep(1000L);
                 waitTimes--;
             }
-            
+            // 处理消息,将队列消息返回
             for (; ; ) {
                 if (shutdown) {
                     break;
                 }
+                // 阻塞队列,没消息会阻塞
                 final Event event = queue.take();
                 receiveEvent(event);
                 UPDATER.compareAndSet(this, lastEventSequence, Math.max(lastEventSequence, event.sequence()));
@@ -171,14 +172,15 @@ public class DefaultPublisher extends Thread implements EventPublisher {
      * @param event {@link Event}.
      */
     void receiveEvent(Event event) {
+        // 事件序号
         final long currentEventSequence = event.sequence();
-        
+        // 没有注册关注此消息,消息将丢失
         if (!hasSubscriber()) {
             LOGGER.warn("[NotifyCenter] the {} is lost, because there is no subscriber.", event);
             return;
         }
         
-        // Notification single event listener
+        // Notification single event listener 通知消息监听者
         for (Subscriber subscriber : subscribers) {
             // Whether to ignore expiration events
             if (subscriber.ignoreExpireEvent() && lastEventSequence > currentEventSequence) {
@@ -200,7 +202,7 @@ public class DefaultPublisher extends Thread implements EventPublisher {
         
         final Runnable job = () -> subscriber.onEvent(event);
         final Executor executor = subscriber.executor();
-        
+        // 有线程池则用线程池,没有直接创建
         if (executor != null) {
             executor.execute(job);
         } else {

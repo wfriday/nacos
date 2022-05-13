@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Raft peer.
- *
+ * raft信息
  * @deprecated will remove in 1.4.x
  * @author nacos
  */

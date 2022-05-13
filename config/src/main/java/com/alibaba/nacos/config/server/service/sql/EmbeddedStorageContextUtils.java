@@ -36,6 +36,9 @@ import java.util.Map;
  */
 public class EmbeddedStorageContextUtils {
     
+    /**
+     * 保存数据
+     */
     private static final ThreadLocal<ArrayList<ModifyRequest>> SQL_CONTEXT = ThreadLocal.withInitial(ArrayList::new);
     
     private static final ThreadLocal<Map<String, String>> EXTEND_INFO_CONTEXT = ThreadLocal.withInitial(HashMap::new);
