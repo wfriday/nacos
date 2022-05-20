@@ -35,6 +35,10 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class DataStore {
     
+    /**
+     * dataMap的key 与 Datum的key内容一样
+     * Datum 包含 key 以及 value 以及 时间戳（集群数据比较） 以及checksum
+     */
     private Map<String, Datum> dataMap = new ConcurrentHashMap<>(1024);
     
     public void put(String key, Datum value) {

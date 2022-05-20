@@ -32,7 +32,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Kv storage based on file system. // TODO 写文件的方式需要优化
- *
+ * kv存储对应内容 key是文件名 value存在文件中
  * @author <a href="mailto:liaochuntao@live.com">liaochuntao</a>
  */
 public class FileKvStorage implements KvStorage {
@@ -50,6 +50,7 @@ public class FileKvStorage implements KvStorage {
     
     public FileKvStorage(String baseDir) throws IOException {
         this.baseDir = baseDir;
+        // 创建当前文件夹所在路径以及文件
         DiskUtils.forceMkdir(baseDir);
     }
     

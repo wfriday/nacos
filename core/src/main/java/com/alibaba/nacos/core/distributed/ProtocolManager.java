@@ -63,12 +63,13 @@ public class ProtocolManager extends MemberChangeListener implements DisposableB
         NotifyCenter.registerSubscriber(this);
     }
     
+    // 拿地址 + 普通端口
     public static Set<String> toAPMembersInfo(Collection<Member> members) {
         Set<String> nodes = new HashSet<>();
         members.forEach(member -> nodes.add(member.getAddress()));
         return nodes;
     }
-    
+    // 拿地址跟raft端口
     public static Set<String> toCPMembersInfo(Collection<Member> members) {
         Set<String> nodes = new HashSet<>();
         members.forEach(member -> {

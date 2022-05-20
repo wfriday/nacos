@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * Realization of KV storage based on memory.
- *
+ * ConcurrentSkipListMap存在内存中
  * @author <a href="mailto:liaochuntao@live.com">liaochuntao</a>
  */
 public class MemoryKvStorage implements KvStorage {

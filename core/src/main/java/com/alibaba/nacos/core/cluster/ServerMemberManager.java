@@ -149,6 +149,7 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
     
     public ServerMemberManager(ServletContext servletContext) throws Exception {
         this.serverList = new ConcurrentSkipListMap<>();
+        // 获取contextPath
         EnvUtil.setContextPath(servletContext.getContextPath());
         
         init();
@@ -156,8 +157,11 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
     
     protected void init() throws NacosException {
         Loggers.CORE.info("Nacos-related cluster resource initialization");
+        // 获取server.port 默认8848
         this.port = EnvUtil.getProperty(SERVER_PORT_PROPERTY, Integer.class, DEFAULT_SERVER_PORT);
+        // 获取当前主机ip + 端口
         this.localAddress = InetUtils.getSelfIP() + ":" + port;
+        // 设置member信息 ip 端口 状态 raft端口 版本
         this.self = MemberUtil.singleParse(this.localAddress);
         this.self.setExtendVal(MemberMetaDataConstants.VERSION, VersionUtils.version);
         
@@ -170,6 +174,7 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
         registerClusterEvent();
         
         // Initializes the lookup mode 初始化look up模式
+        // 监听conf下的集群的配置文件内容是否改变
         initAndStartLookup();
         
         if (serverList.isEmpty()) {
@@ -456,6 +461,7 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
     
     @Override
     public void onApplicationEvent(WebServerInitializedEvent event) {
+        // 获取服务器命名空间
         String serverNamespace = event.getApplicationContext().getServerNamespace();
         if (SPRING_MANAGEMENT_CONTEXT_NAMESPACE.equals(serverNamespace)) {
             // ignore

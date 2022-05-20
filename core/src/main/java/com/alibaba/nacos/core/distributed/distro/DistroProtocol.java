@@ -37,7 +37,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Distro protocol.
- *
+ * Distro协议
  * @author xiweng.yy
  */
 @Component
@@ -84,6 +84,7 @@ public class DistroProtocol {
                 new DistroLoadDataTask(memberManager, distroComponentHolder, DistroConfig.getInstance(), loadCallback));
     }
     
+    // 开始task任务
     private void startVerifyTask() {
         GlobalExecutor.schedulePartitionDataTimedSync(new DistroVerifyTimedTask(memberManager, distroComponentHolder,
                         distroTaskEngineHolder.getExecuteWorkersManager()),

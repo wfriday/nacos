@@ -133,6 +133,7 @@ public class DistroController {
      */
     @GetMapping("/datums")
     public ResponseEntity getAllDatums() {
+        // 获取数据快照
         DistroData distroData = distroProtocol.onSnapshot(KeyBuilder.INSTANCE_LIST_KEY_PREFIX);
         return ResponseEntity.ok(distroData.getContent());
     }

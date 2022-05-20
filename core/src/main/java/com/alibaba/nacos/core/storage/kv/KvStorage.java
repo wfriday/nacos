@@ -23,11 +23,14 @@ import java.util.Map;
 
 /**
  * Universal KV storage interface.
- *
+ * kv 存储接口
  * @author <a href="mailto:liaochuntao@live.com">liaochuntao</a>
  */
 public interface KvStorage {
     
+    /**
+     * 存储类型 （文件，内存，RocksDB存储）
+     */
     enum KvType {
         /**
          * Local file storage.

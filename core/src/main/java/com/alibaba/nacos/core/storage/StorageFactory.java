@@ -22,7 +22,7 @@ import com.alibaba.nacos.core.storage.kv.MemoryKvStorage;
 
 /**
  * Ket-value Storage factory.
- *
+ * kv存储类创建工厂，根据不同的类型返回不同的对象
  * @author <a href="mailto:liaochuntao@live.com">liaochuntao</a>
  */
 public final class StorageFactory {
